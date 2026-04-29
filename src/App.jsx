@@ -676,8 +676,8 @@ const timeControlMessage = hasGuardData
               Ajoute une habitude, indique combien de minutes elle te coûte chaque jour,
               et découvre ce que cette fuite représente vraiment sur une semaine, un mois, un an ou dix ans.
             </p>
-
-                  <div className="mt-6 flex flex-wrap gap-3">
+            </div>
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
         <button
           type="button"
           onClick={() => setCurrentView("guard-one")}
@@ -692,7 +692,6 @@ const timeControlMessage = hasGuardData
         >
             Découvrir mon Guard Score
           </button>
-          </div>
           <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
   <div className="flex items-center justify-between gap-4">
     <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
