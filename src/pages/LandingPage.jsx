@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-5 py-16">
-        <div className="max-w-4xl">
+      {/* HERO */}
+      <section className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-[0.95fr_1.05fr]">
+        {/* Texte hero */}
+        <div className="text-center lg:text-left">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-neutral-300">
             <span className="text-lg font-black text-white">G</span>
             <span>GUARD</span>
@@ -12,16 +14,16 @@ export default function LandingPage() {
             <span className="text-neutral-500">Beta</span>
           </div>
 
-          <h1 className="max-w-4xl text-5xl font-black tracking-tight md:text-7xl">
+          <h1 className="text-5xl font-black tracking-tight md:text-7xl">
             Arrête de vivre par défaut.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl lg:mx-0">
             Guard révèle où ton temps fuit, mesure tes zones protégées et
             t’aide à décider ce que tu fais de l’espace qu’il te reste.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
             <Link
               to="/app"
               className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
@@ -38,10 +40,112 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div
-          id="method"
-          className="mt-20 grid gap-4 md:grid-cols-3"
-        >
+        {/* Image hero à droite */}
+        <div className="relative">
+          <div className="absolute inset-0 rounded-[2rem] bg-indigo-600/20 blur-3xl" />
+
+          <div className="relative overflow-hidden rounded-[2rem] border border-indigo-500/20 bg-white/5 shadow-2xl shadow-indigo-950/40">
+            <img
+              src="/guard_dashboard.png"
+              alt="Interface Guard sur desktop avec le tableau de bord Aujourd’hui"
+              className="w-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+{/* VISUS HUMAINS */}
+      <section className="mx-auto w-full max-w-6xl px-5 py-16">
+  <div className="mb-12 max-w-3xl">
+    <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-300">
+      Guard dans la vraie vie
+    </p>
+    <h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl">
+      Le temps protégé ne sert pas à faire plus.
+      Il sert à vivre mieux.
+    </h2>
+    <p className="mt-4 text-lg leading-8 text-neutral-400">
+      Guard ne mesure pas seulement ce que tu perds.
+      Il t’aide à récupérer de l’espace pour ton focus, ta présence et ton énergie.
+    </p>
+  </div>
+
+  <div className="grid gap-6">
+    <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10">
+      <img
+        src="/guard_friends_banner.png"
+        alt="Personne active incarnant une vie plus intentionnelle"
+        className="h-[420px] w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 p-8 md:p-10">
+        <div className="mb-4 inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white backdrop-blur">
+          Temps précieux
+        </div>
+        <h3 className="max-w-3xl text-3xl font-black leading-tight md:text-5xl">
+          Ne te contente pas d’être occupé.
+          Redeviens disponible pour ce qui compte.
+        </h3>
+      </div>
+    </div>
+
+    <div className="grid gap-6 md:grid-cols-2">
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10">
+        <img
+          src="/guard_focus.png"
+          alt="Moment de concentration et de calme"
+          className="h-[520px] w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 p-8">
+          <div className="mb-4 inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white backdrop-blur">
+            Focus
+          </div>
+          <h3 className="max-w-md text-3xl font-light leading-tight md:text-4xl">
+            Protège tes vraies heures utiles. Les plus productives.
+          </h3>
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10">
+        <img
+          src="/guard_health.png"
+          alt="Moment de présence et de qualité de vie"
+          className="h-[520px] w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 p-8">
+          <div className="mb-4 inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white backdrop-blur">
+            Présence
+          </div>
+          <h3 className="max-w-md text-3xl font-light leading-tight md:text-4xl">
+            Ce que tu mets en place aujourd’hui façonne demain.
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+      {/* METHODE */}
+      <section
+        id="method"
+        className="mx-auto w-full max-w-6xl px-5 py-16"
+      >
+        <div className="mb-10 max-w-3xl">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-300">
+            La méthode Guard
+          </p>
+          <h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl">
+            Voir. Protéger. Décider.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-neutral-400">
+            Une méthode simple pour transformer une journée floue en système
+            visible.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">
               Measure
@@ -73,6 +177,41 @@ export default function LandingPage() {
               Recompose ta journée autour de ce qui mérite vraiment ton
               attention.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* MOBILE / GUARD ONE */}
+      <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-5 py-16 lg:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">
+            Guard One
+          </p>
+          <h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl">
+            Transforme une intention en zone protégée.
+          </h2>
+          <p className="mt-5 max-w-xl text-lg leading-8 text-neutral-400">
+            Lance une session, protège ton attention, puis laisse Guard
+            mesurer ce que tu reprends réellement.
+          </p>
+
+          <Link
+            to="/app"
+            className="mt-8 inline-flex rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+          >
+            Activer Guard One
+          </Link>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 rounded-[2rem] bg-violet-600/20 blur-3xl" />
+
+          <div className="relative overflow-hidden rounded-[2rem] border border-violet-500/20 bg-white/5 shadow-2xl shadow-violet-950/40">
+            <img
+              src="/guard_mobile.png"
+              alt="Interface Guard One mobile avec zone protégée et progression"
+              className="w-full object-cover"
+            />
           </div>
         </div>
       </section>
