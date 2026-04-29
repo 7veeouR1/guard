@@ -669,7 +669,7 @@ const timeControlMessage = hasGuardData
   </div>
 
             <h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
-              <span className="bg-gradient-to-r from-indigo-800 to-violet-800 bg-clip-text text-transparent">Tu ne manques pas de temps, tu le laisses s'échapper.</span>
+              <span className="text-white">Tu ne manques pas de temps, tu le laisses s'échapper.</span>
             </h1>
 
             <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-300">
