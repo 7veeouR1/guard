@@ -214,6 +214,36 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <section className="mx-auto w-full max-w-6xl px-5 py-20">
+  <div className="overflow-hidden rounded-[2.5rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/40 to-neutral-950 p-8 text-center shadow-2xl shadow-indigo-950/30 md:p-14">
+    <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
+      Commencer maintenant
+    </p>
+
+    <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
+      Tu ne peux pas protéger ce que tu ne vois pas.
+    </h2>
+
+    <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-neutral-300">
+      Découvre ton Guard Score, identifie tes fuites de temps et lance ta première zone protégée.
+    </p>
+
+    <div className="mt-8 flex justify-center">
+      <Link
+        to="/app"
+        className="rounded-2xl bg-white px-7 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+      >
+        Découvrir mon Guard Score
+      </Link>
+    </div>
+
+    <p className="mt-4 text-sm text-neutral-500">
+      Bêta gratuite — aucun compte nécessaire pour tester.
+    </p>
+  </div>
+</section>
+
     </main>
   );
 }
