@@ -663,9 +663,10 @@ const timeControlMessage = hasGuardData
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:py-16">
         <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-end">
           <div>
-          <div className="flex justify-center md:justify-start">
-            <ProductBadge />
-          </div>
+          <div className="text-center md:text-left">
+  <div className="flex justify-center md:justify-start">
+    <ProductBadge />
+  </div>
 
             <h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
               <span className="bg-gradient-to-r from-indigo-800 to-violet-800 bg-clip-text text-transparent">Tu ne manques pas de temps, tu le laisses s'échapper.</span>
@@ -691,6 +692,7 @@ const timeControlMessage = hasGuardData
         >
             Découvrir mon Guard Score
           </button>
+          </div>
           <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
   <div className="flex items-center justify-between gap-4">
     <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
