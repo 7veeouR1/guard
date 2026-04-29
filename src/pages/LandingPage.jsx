@@ -19,8 +19,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl lg:mx-0">
-            Guard révèle où ton temps fuit, mesure tes zones protégées et
-            t’aide à décider ce que tu fais de l’espace qu’il te reste.
+          Guard te montre où part ton temps, combien il t’en reste vraiment, et t’aide à protéger les créneaux qui comptent.
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
