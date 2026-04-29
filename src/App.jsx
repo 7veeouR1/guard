@@ -56,8 +56,10 @@ function IconBadge({ children, className = "" }) {
 function ProductBadge() {
   return (
     <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-s font-semibold uppercase tracking-[0.18em] text-neutral-300 shadow-lg shadow-black/20 backdrop-blur">
-      <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-rose-400">
-  <span className="text-sm font-black tracking-tight text-black">G</span>
+     <span className="flex h-10 w-10 items-center justify-center">
+  <span className="text-4xl font-black leading-none tracking-[-0.12em] text-white">
+    G
+  </span>
 </span>
       <span>GUARD</span>
       <span className="h-1 w-1 rounded-full bg-neutral-600" />
