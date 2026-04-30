@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import GuardOne from "../components/GuardOne";
+import GuardAudit from "../components/GuardAudit";
 
 
 const PRESETS = [
@@ -458,10 +459,23 @@ export default function GuardApp() {
   const [customWorkHours, setCustomWorkHours] = useState(8);
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [auditData, setAuditData] = useState(null);
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
   }, [currentView]);
+
+  useEffect(() => {
+    const storedAudit = localStorage.getItem("guard_audit");
+  
+    if (storedAudit) {
+      try {
+        setAuditData(JSON.parse(storedAudit));
+      } catch (error) {
+        console.error("Impossible de lire l’audit Guard", error);
+      }
+    }
+  }, []);
 
   const totalMinutesPerDay = useMemo(() => calculateTotalMinutesPerDay(habits), [habits]);
   
@@ -525,7 +539,8 @@ const timeControlScore = hasGuardData
 ? Math.round(protectedShare * 60 + nonLeakedShare * 40)
 : null;
 
-const recommendedGuardMinutes = 45;
+const recommendedGuardMinutes =
+auditData?.profile?.recommendedMinutes || 45;
 
 const rawPotentialGain =
   availableMinutesToday === 0
@@ -640,6 +655,16 @@ const timeControlMessage = hasGuardData
     }
   }
 
+  if (!auditData) {
+    return (
+      <GuardAudit
+        onComplete={(data) => {
+          setAuditData(data);
+        }}
+      />
+    );
+  }
+
   if (currentView === "guard-one") {
     return (
       <div className="min-h-screen bg-black text-white">
@@ -652,6 +677,8 @@ const timeControlMessage = hasGuardData
             ← Retour au diagnostic
           </button>
         </div>
+
+
 
         <GuardOne />
       </div>
@@ -692,6 +719,68 @@ const timeControlMessage = hasGuardData
         >
             Découvrir mon Guard Score
           </button>
+
+          {auditData?.profile && (
+  <div className="mt-8 overflow-hidden rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/30 md:p-8">
+    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <div className="max-w-2xl">
+        <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
+          Ton profil Guard
+        </p>
+
+        <h2 className="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">
+          {auditData.profile.profileName}
+        </h2>
+
+        <p className="mt-4 max-w-xl text-base leading-7 text-neutral-300 md:text-lg">
+          {auditData.profile.profileDescription}
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-8 grid gap-3 md:grid-cols-2">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+          Priorité
+        </p>
+        <p className="mt-2 text-2xl font-black text-white">
+          {auditData.profile.priorityLabel}
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+          Objectif recommandé
+        </p>
+        <p className="mt-2 text-2xl font-black text-indigo-300">
+          {auditData.profile.recommendedMinutes} min / jour
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-6 flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setCurrentView("guard-one")}
+        className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+      >
+        Lancer ma première zone
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          localStorage.removeItem("guard_audit");
+          setAuditData(null);
+        }}
+        className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+      >
+        Refaire l’audit
+      </button>
+    </div>
+  </div>
+)}
+
           <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
   <div className="flex items-center justify-between gap-4">
     <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
