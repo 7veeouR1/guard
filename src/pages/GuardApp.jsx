@@ -444,6 +444,34 @@ if (typeof window !== "undefined") {
   runCalculationTests();
 }
 
+const PROFILE_CONFIG = {
+    "Fuite d’attention": {
+      image: "/attention.png",
+      alt: "Personne absorbée par son téléphone",
+      badge: "Attention captée",
+    },
+    "Fuite de démarrage": {
+      image: "/demarrage.png",
+      alt: "Personne hésitant avant de commencer une tâche",
+      badge: "Démarrage fragile",
+    },
+    "Temps fragmenté": {
+      image: "/fragmentation.png",
+      alt: "Journée fragmentée avec plusieurs interruptions",
+      badge: "Temps fragmenté",
+    },
+    "Fuite d’énergie": {
+      image: "/energie.png",
+      alt: "Personne fatiguée en fin de journée",
+      badge: "Énergie basse",
+    },
+    "Profil à clarifier": {
+      image: "/default.png",
+      alt: "Moment de réflexion calme",
+      badge: "Profil à préciser",
+    },
+  };
+
 export default function GuardApp() {
   const [currentView, setCurrentView] = useState("calculator");
   const [guardSessions, setGuardSessions] = useState([]);
@@ -685,6 +713,9 @@ const timeControlMessage = hasGuardData
     );
   }
 
+  const activeProfileConfig =
+  PROFILE_CONFIG[auditData?.profile?.profileName] || PROFILE_CONFIG["Profil à clarifier"];
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:py-16">
@@ -720,69 +751,9 @@ const timeControlMessage = hasGuardData
             Découvrir mon Guard Score
           </button>
 
-          {auditData?.profile && (
-  <div className="mt-8 overflow-hidden rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/30 md:p-8">
-    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-      <div className="max-w-2xl">
-        <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
-          Ton profil Guard
-        </p>
-
-        <h2 className="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">
-          {auditData.profile.profileName}
-        </h2>
-
-        <p className="mt-4 max-w-xl text-base leading-7 text-neutral-300 md:text-lg">
-          {auditData.profile.profileDescription}
-        </p>
-      </div>
-    </div>
-
-    <div className="mt-8 grid gap-3 md:grid-cols-2">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-          Priorité
-        </p>
-        <p className="mt-2 text-2xl font-black text-white">
-          {auditData.profile.priorityLabel}
-        </p>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-          Objectif recommandé
-        </p>
-        <p className="mt-2 text-2xl font-black text-indigo-300">
-          {auditData.profile.recommendedMinutes} min / jour
-        </p>
-      </div>
-    </div>
-
-    <div className="mt-6 flex flex-wrap items-center gap-3">
-      <button
-        type="button"
-        onClick={() => setCurrentView("guard-one")}
-        className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-      >
-        Lancer ma première zone
-      </button>
-
-      <button
-        type="button"
-        onClick={() => {
-          localStorage.removeItem("guard_audit");
-          setAuditData(null);
-        }}
-        className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-      >
-        Refaire l’audit
-      </button>
-    </div>
-  </div>
-)}
-
           <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
-  <div className="flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-4">
+    
     <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
       Aujourd’hui
     </p>
@@ -961,6 +932,82 @@ const timeControlMessage = hasGuardData
   </CardContent>
 </Card>
         </div>
+
+        {/* TON PROFIL GUARD — À METTRE ICI */}
+        {auditData?.profile && (
+  <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+    {/* Bloc profil */}
+    <div className="min-h-[520px] rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-8 shadow-2xl shadow-indigo-950/30 md:p-10">
+      <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
+        Ton profil Guard
+      </p>
+
+      <h2 className="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">
+        {auditData.profile.profileName}
+      </h2>
+
+      <p className="mt-6 max-w-3xl text-lg leading-8 text-neutral-300 md:text-xl">
+        {auditData.profile.profileDescription}
+      </p>
+
+      <div className="mt-10 grid gap-4 md:grid-cols-2">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+            Priorité
+          </p>
+          <p className="mt-3 text-3xl font-black text-white">
+            {auditData.profile.priorityLabel}
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+            Objectif recommandé
+          </p>
+          <p className="mt-3 text-3xl font-black text-indigo-300">
+            {auditData.profile.recommendedMinutes} min / jour
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-10 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setCurrentView("guard-one")}
+          className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+        >
+          Lancer ma première zone
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.removeItem("guard_audit");
+            setAuditData(null);
+          }}
+          className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+        >
+          Refaire l’audit
+        </button>
+      </div>
+    </div>
+
+    {/* Bloc image dynamique */}
+    <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30">
+      <img
+        src={activeProfileConfig.image}
+        alt={activeProfileConfig.alt}
+        className="h-full w-full object-cover object-center"
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/45 via-transparent to-transparent" />
+
+      <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
+        {activeProfileConfig.badge}
+      </div>
+    </div>
+  </div>
+)}
 
         <Card className="border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/90 to-violet-900/70 text-white shadow-2xl shadow-indigo-950/30 backdrop-blur">
           <CardContent className="p-6">
