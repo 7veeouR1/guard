@@ -511,6 +511,29 @@ export default function GuardApp() {
     () => getTodayGuardSessions(guardSessions),
     [guardSessions]
   );
+
+  const totalGuardCredits = useMemo(() => {
+    return guardSessions.reduce((total, session) => {
+      return total + (session.creditsEarned || 0);
+    }, 0);
+  }, [guardSessions]);
+  
+  const todayGuardCredits = useMemo(() => {
+    return todayGuardSessions.reduce((total, session) => {
+      return total + (session.creditsEarned || 0);
+    }, 0);
+  }, [todayGuardSessions]);
+  
+  const rewardTargetCredits = 500;
+  const remainingCreditsToReward = Math.max(
+    0,
+    rewardTargetCredits - totalGuardCredits
+  );
+  
+  const rewardProgress = Math.min(
+    100,
+    Math.round((totalGuardCredits / rewardTargetCredits) * 100)
+  );
   
   const protectedMinutesToday = useMemo(() => {
     return todayGuardSessions.reduce((total, session) => {
@@ -750,6 +773,80 @@ const timeControlMessage = hasGuardData
         >
             Découvrir mon Guard Score
           </button>
+
+          <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-neutral-950 via-emerald-950/30 to-neutral-950 p-6 shadow-2xl shadow-emerald-950/20 md:p-8">
+  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-300">
+        Capital Guard
+      </p>
+
+      <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-7xl">
+        {totalGuardCredits}
+      </h2>
+
+      <p className="mt-2 text-xl font-black text-neutral-400">
+        Guard Credits disponibles
+      </p>
+    </div>
+
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[220px]">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+        Aujourd’hui
+      </p>
+
+      <p className="mt-2 text-3xl font-black text-emerald-300">
+        +{todayGuardCredits}
+      </p>
+
+      <p className="mt-1 text-sm font-medium text-neutral-400">
+        crédits gagnés
+      </p>
+    </div>
+  </div>
+
+  <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-5">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <p className="text-sm font-bold text-neutral-400">
+          Prochaine récompense
+        </p>
+        <p className="mt-1 text-2xl font-black text-white">
+          Accès prioritaire aux Guard Rewards
+        </p>
+      </div>
+
+      <div className="text-right">
+        <p className="text-sm font-bold text-neutral-500">
+          Objectif
+        </p>
+        <p className="text-2xl font-black text-emerald-300">
+          {rewardTargetCredits}
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 transition-all"
+        style={{ width: `${rewardProgress}%` }}
+      />
+    </div>
+
+    <p className="mt-3 text-sm text-neutral-400">
+      Encore{" "}
+      <span className="font-black text-white">
+        {remainingCreditsToReward}
+      </span>{" "}
+      crédits pour débloquer la prochaine récompense.
+    </p>
+  </div>
+
+  <p className="mt-5 text-sm leading-6 text-neutral-500">
+    Chaque zone protégée complétée alimente ton Capital Guard. Les premières
+    récompenses partenaires arrivent bientôt.
+  </p>
+</div>
 
           <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
     <div className="flex items-center justify-between gap-4">
