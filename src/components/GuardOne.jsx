@@ -18,6 +18,13 @@ const qualityMap = {
   Interrompue: 20,
 };
 
+const creditMultiplierMap = {
+  Claire: 1,
+  Correcte: 0.8,
+  Dispersée: 0.5,
+  Interrompue: 0.2,
+};
+
 export default function GuardOne() {
   const [step, setStep] = useState("setup");
   const [sessionType, setSessionType] = useState("Business");
@@ -77,6 +84,8 @@ export default function GuardOne() {
       )
     );
 
+    const creditsEarned = calculateCredits(actualDuration, selectedQuality);
+
     const newSession = {
       id: crypto.randomUUID(),
       type: sessionType,
@@ -110,6 +119,11 @@ export default function GuardOne() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
 
+  function calculateCredits(actualDuration, selectedQuality) {
+    const multiplier = creditMultiplierMap[selectedQuality] || 0;
+    return Math.round(actualDuration * multiplier);
+  }
+
   function calculateSessionScore(session) {
     const durationRespect =
       Math.min(session.actualDuration / session.plannedDuration, 1) * 100;
@@ -132,6 +146,10 @@ export default function GuardOne() {
       return total + session.actualDuration;
     }, 0);
 
+    const creditsToday = todaySessions.reduce((total, session) => {
+      return total + (session.creditsEarned || 0);
+    }, 0);
+
     const guardScore =
       todaySessions.length > 0
         ? Math.round(
@@ -143,6 +161,7 @@ export default function GuardOne() {
 
     return {
       protectedTime,
+      creditsToday,
       sessionsCount: todaySessions.length,
       guardScore,
     };
@@ -236,7 +255,7 @@ export default function GuardOne() {
                       <div>
                         <strong>{session.type}</strong>
                         <p style={styles.historyMeta}>
-                          {session.actualDuration} min · {session.quality}
+                          {session.actualDuration} min · {session.quality} · +{session.creditsEarned || 0} credits
                         </p>
                       </div>
                       <div style={styles.sessionScore}>
@@ -314,8 +333,8 @@ function TodayStats({ stats }) {
         </div>
 
         <div>
-          <p style={styles.statsValue}>{stats.sessionsCount}</p>
-          <p style={styles.statsLabel}>Zones</p>
+          <p style={styles.statsValue}>{stats.creditsToday}</p>
+          <p style={styles.statsLabel}>Guard Credits</p>
         </div>
       </div>
     </section>
