@@ -1,25 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import GuardOne from "../components/GuardOne";
 import GuardAudit from "../components/GuardAudit";
-
+import AuthPanel from "../components/AuthPanel";
+import { supabase } from "../lib/supabaseClient";
 
 const PRESETS = [
   { name: "Scroll réseaux sociaux", minutes: 45 },
   { name: "Snooze du réveil", minutes: 15 },
-  { name: "Téléphone au lit", minutes: 30 },
   { name: "YouTube / Netflix en pilote automatique", minutes: 60 },
-  { name: "Procrastination avant de commencer", minutes: 40 },
-  { name: "Notifications et messages", minutes: 25 },
-  { name: "Rangement / dispersion inutile", minutes: 20 },
-  { name: "Discussions inutiles", minutes: 30 },
-  { name: "Micro-pauses qui dérapent", minutes: 25 },
-  { name: "Temps perdu à choisir quoi faire", minutes: 20 },
 ];
 
 const PERIODS = [
   { label: "1 semaine", days: 7 },
   { label: "1 mois", days: 30 },
-  { label: "6 mois", days: 182 },
   { label: "1 an", days: 365 },
 ];
 
@@ -488,6 +481,9 @@ export default function GuardApp() {
   const [showCopiedToast, setShowCopiedToast] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [auditData, setAuditData] = useState(null);
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [showAuthPanel, setShowAuthPanel] = useState(false);
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
@@ -503,6 +499,22 @@ export default function GuardApp() {
         console.error("Impossible de lire l’audit Guard", error);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+    });
+  
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+    });
+  
+    return () => subscription.unsubscribe();
   }, []);
 
   const totalMinutesPerDay = useMemo(() => calculateTotalMinutesPerDay(habits), [habits]);
@@ -624,6 +636,9 @@ const timeControlMessage = hasGuardData
   { label: "Temps à décider", value: undecidedMinutesToday / 60, color: "#FB82FF" },
 ];
 
+const username =
+  user?.user_metadata?.username || user?.email?.split("@")[0] || "";
+
   function addHabit(name, minutes) {
     const cleanName = String(name || "").trim();
     const cleanMinutes = normalizeMinutes(minutes);
@@ -739,6 +754,17 @@ const timeControlMessage = hasGuardData
   const activeProfileConfig =
   PROFILE_CONFIG[auditData?.profile?.profileName] || PROFILE_CONFIG["Profil à clarifier"];
 
+
+
+
+
+{/* -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  -------------------------------------------------------CE QUE LA PAGE AFFICHE----------------------------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */}
+
+ 
+ 
+ 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:py-16">
@@ -749,7 +775,10 @@ const timeControlMessage = hasGuardData
     <ProductBadge />
   </div>
 
-            <h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
+
+{/* ------------------------HERO APP DÉBUT------------------------------------ */}
+
+            {/*<h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
               <span className="text-white">Tu ne manques pas de temps, tu le laisses s'échapper.</span>
             </h1>
 
@@ -774,81 +803,101 @@ const timeControlMessage = hasGuardData
             Découvrir mon Guard Score
           </button>
 
-          <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-neutral-950 via-emerald-950/30 to-neutral-950 p-6 shadow-2xl shadow-emerald-950/20 md:p-8">
-  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-    <div>
-      <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-300">
-        Capital Guard
+{/* ------------------------HERO APP FIN------------------------------------ */}
+
+<p className="mb-6 text-xl font-black text-white">
+  Bienvenue<span className="font-bold text-white">{username}</span>
+</p>
+
+{/* ------------------------TON PROFIL GUARD DÉBUT------------------------------------ */}
+     
+{auditData?.profile && (
+  <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+    {/* Bloc profil */}
+    <div className="min-h-[520px] rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-8 shadow-2xl shadow-indigo-950/30 md:p-10">
+      <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
+        Ton profil Guard
       </p>
 
-      <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-7xl">
-        {totalGuardCredits}
+      <h2 className="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">
+        {auditData.profile.profileName}
       </h2>
 
-      <p className="mt-2 text-xl font-black text-neutral-400">
-        Guard Credits disponibles
-      </p>
-    </div>
-
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[220px]">
-      <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-        Aujourd’hui
+      <p className="mt-6 max-w-3xl text-lg leading-8 text-neutral-300 md:text-xl">
+        {auditData.profile.profileDescription}
       </p>
 
-      <p className="mt-2 text-3xl font-black text-emerald-300">
-        +{todayGuardCredits}
-      </p>
+      <div className="mt-10 grid gap-4 md:grid-cols-2">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+            Priorité
+          </p>
+          <p className="mt-3 text-3xl font-black text-white">
+            {auditData.profile.priorityLabel}
+          </p>
+        </div>
 
-      <p className="mt-1 text-sm font-medium text-neutral-400">
-        crédits gagnés
-      </p>
-    </div>
-  </div>
-
-  <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-5">
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-bold text-neutral-400">
-          Prochaine récompense
-        </p>
-        <p className="mt-1 text-2xl font-black text-white">
-          Accès prioritaire aux Guard Rewards
-        </p>
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+            Objectif recommandé
+          </p>
+          <p className="mt-3 text-3xl font-black text-indigo-300">
+            {auditData.profile.recommendedMinutes} min / jour
+          </p>
+        </div>
       </div>
 
-      <div className="text-right">
-        <p className="text-sm font-bold text-neutral-500">
-          Objectif
-        </p>
-        <p className="text-2xl font-black text-emerald-300">
-          {rewardTargetCredits}
-        </p>
+      <div className="mt-10 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setCurrentView("guard-one")}
+          className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+        >
+          Lancer ma première zone
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.removeItem("guard_audit");
+            setAuditData(null);
+          }}
+          className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+        >
+          Refaire l’audit
+        </button>
       </div>
     </div>
 
-    <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
-      <div
-        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 transition-all"
-        style={{ width: `${rewardProgress}%` }}
+{/* ------------------------TON PROFIL GUARD FIN------------------------------------ */}
+
+
+
+{/* ------------------------IMAGE DYNAMIQUE PROFIL GUARD DÉBUT------------------------------------ */}
+
+    <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30">
+      <img
+        src={activeProfileConfig.image}
+        alt={activeProfileConfig.alt}
+        className="h-full w-full object-cover object-center"
       />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/45 via-transparent to-transparent" />
+
+      <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
+        {activeProfileConfig.badge}
+      </div>
     </div>
-
-    <p className="mt-3 text-sm text-neutral-400">
-      Encore{" "}
-      <span className="font-black text-white">
-        {remainingCreditsToReward}
-      </span>{" "}
-      crédits pour débloquer la prochaine récompense.
-    </p>
   </div>
+  
+)}
 
-  <p className="mt-5 text-sm leading-6 text-neutral-500">
-    Chaque zone protégée complétée alimente ton Capital Guard. Les premières
-    récompenses partenaires arrivent bientôt.
-  </p>
-</div>
+{/* ------------------------IMAGE DYNAMIQUE PROFIL GUARD FIN------------------------------------ */}
 
-          <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
+
+{/* ------------------------AUJOURD'HUI DÉBUT------------------------------------ */}
+
+<div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
     <div className="flex items-center justify-between gap-4">
     
     <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
@@ -966,147 +1015,15 @@ const timeControlMessage = hasGuardData
     </p>
   </div>
 </div>
-        </div>
+</div>
+</div>
 
-          </div>
+{/* ------------------------AUJOURD'HUI FIN------------------------------------ */}
 
-          <Card className="border-indigo-500/20 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 text-neutral-950 shadow-2xl shadow-indigo-950/20">
-  <CardContent className="p-6">
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-700">
-        Next Guard Move
-      </p>
 
-      <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
-        +{potentialGain ?? "—"} pts
-      </span>
-    </div>
+{/* ------------------------JOURNÉE TYPE DÉBUT------------------------------------ */}
 
-    <div className="mt-8">
-      <p className="text-6xl font-black leading-none tracking-tight">
-        {recommendedGuardMinutes}
-        <span className="ml-2 text-2xl">min</span>
-      </p>
-
-      <p className="mt-2 text-lg font-black text-neutral-500">
-        à optimiser dès maintenant
-      </p>
-    </div>
-
-    <div className="mt-6 rounded-3xl bg-white/70 p-4">
-      <p className="text-sm font-bold text-neutral-500">
-        Récompense potentielle
-      </p>
-
-      <p className="mt-2 text-4xl font-black text-indigo-700">
-        {potentialGain === null ? "—" : `+${potentialGain}`}
-        <span className="text-lg text-neutral-500"> pts</span>
-      </p>
-
-      <p className="mt-2 text-sm text-neutral-500">
-        Score potentiel :{" "}
-        <span className="font-black text-neutral-950">
-          {potentialScore === null ? "—" : potentialScore}/100
-        </span>
-      </p>
-    </div>
-
-    <p className="mt-5 text-sm leading-6 text-neutral-600">
-      Protège une zone courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
-    </p>
-
-    <button
-      type="button"
-      onClick={() => setCurrentView("guard-one")}
-      className="mt-6 w-full rounded-2xl bg-neutral-950 px-5 py-4 text-sm font-black text-white transition hover:bg-neutral-800"
-    >
-      Activer Guard One
-    </button>
-
-    <p className="mt-3 text-center text-xs font-medium text-neutral-500">
-      Récompense estimée si la zone est complétée.
-    </p>
-  </CardContent>
-</Card>
-        </div>
-
-        {/* TON PROFIL GUARD — À METTRE ICI */}
-        {auditData?.profile && (
-  <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-    {/* Bloc profil */}
-    <div className="min-h-[520px] rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-8 shadow-2xl shadow-indigo-950/30 md:p-10">
-      <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
-        Ton profil Guard
-      </p>
-
-      <h2 className="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">
-        {auditData.profile.profileName}
-      </h2>
-
-      <p className="mt-6 max-w-3xl text-lg leading-8 text-neutral-300 md:text-xl">
-        {auditData.profile.profileDescription}
-      </p>
-
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-            Priorité
-          </p>
-          <p className="mt-3 text-3xl font-black text-white">
-            {auditData.profile.priorityLabel}
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-            Objectif recommandé
-          </p>
-          <p className="mt-3 text-3xl font-black text-indigo-300">
-            {auditData.profile.recommendedMinutes} min / jour
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-10 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setCurrentView("guard-one")}
-          className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-        >
-          Lancer ma première zone
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            localStorage.removeItem("guard_audit");
-            setAuditData(null);
-          }}
-          className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-        >
-          Refaire l’audit
-        </button>
-      </div>
-    </div>
-
-    {/* Bloc image dynamique */}
-    <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30">
-      <img
-        src={activeProfileConfig.image}
-        alt={activeProfileConfig.alt}
-        className="h-full w-full object-cover object-center"
-      />
-
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/45 via-transparent to-transparent" />
-
-      <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
-        {activeProfileConfig.badge}
-      </div>
-    </div>
-  </div>
-)}
-
-        <Card className="border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/90 to-violet-900/70 text-white shadow-2xl shadow-indigo-950/30 backdrop-blur">
+<Card className="border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/90 to-violet-900/70 text-white shadow-2xl shadow-indigo-950/30 backdrop-blur">
           <CardContent className="p-6">
             <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
               <div>
@@ -1260,6 +1177,13 @@ const timeControlMessage = hasGuardData
           </CardContent>
         </Card>
 
+{/* ------------------------JOURNÉE TYPE FIN------------------------------------ */}
+</div>
+
+
+
+{/* ------------------------AJOUTE TES HABITUDES DÉBUT------------------------------------ */}
+
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
             <CardContent className="p-6">
@@ -1328,6 +1252,12 @@ const timeControlMessage = hasGuardData
             </CardContent>
           </Card>
 
+{/* ------------------------AJOUTE TES HABITUDES FIN------------------------------------ */}
+
+
+
+{/* ------------------------TES FUITES ACTUELLES DÉBUT------------------------------------ */}
+
           <div className="grid gap-6">
             <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
               <CardContent className="p-6">
@@ -1371,6 +1301,12 @@ const timeControlMessage = hasGuardData
               </CardContent>
             </Card>
 
+{/* ------------------------TES FUITES ACTUELLES FIN------------------------------------ */}
+
+
+
+{/* ------------------------PERIODES DÉBUT------------------------------------ */}
+
             <div className="grid gap-4 md:grid-cols-2">
               {PERIODS.map((period) => {
                 const periodMinutes = totalMinutesPerDay * period.days;
@@ -1387,6 +1323,12 @@ const timeControlMessage = hasGuardData
                 );
               })}
             </div>
+
+{/* ------------------------PERIODES FIN------------------------------------ */}
+
+
+
+{/* ------------------------CONCLUSION------------------------------------ */}
 
             <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
               <CardContent className="p-6">
@@ -1413,6 +1355,13 @@ const timeControlMessage = hasGuardData
     Partager
   </button>
 </div>
+
+{/* ------------------------CONCLUSION------------------------------------ */}
+
+
+ 
+{/* ------------------------BLOC DE PARTAGE DÉBUT------------------------------------ */}
+
               </CardContent>
             </Card>
           </div>
@@ -1483,6 +1432,194 @@ const timeControlMessage = hasGuardData
     </div>
   </div>
 )}
+
+{/* ------------------------BLOC DE PARTAGE FIN------------------------------------ */}
+
+
+{/* ------------------------NEXT GUARD MOVE DEBUT------------------------------------ */}
+<div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
+<Card className="border-indigo-500/20 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 text-neutral-950 shadow-2xl shadow-indigo-950/20">
+  <CardContent className="p-6">
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-700">
+        Next Guard Move
+      </p>
+
+      <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
+        +{potentialGain ?? "—"} pts
+      </span>
+    </div>
+
+    <div className="mt-8">
+      <p className="text-6xl font-black leading-none tracking-tight">
+        {recommendedGuardMinutes}
+        <span className="ml-2 text-2xl">min</span>
+      </p>
+
+      <p className="mt-2 text-lg font-black text-neutral-500">
+        à optimiser dès maintenant
+      </p>
+    </div>
+
+    <div className="mt-6 rounded-3xl bg-white/70 p-4">
+      <p className="text-sm font-bold text-neutral-500">
+        Récompense potentielle
+      </p>
+
+      <p className="mt-2 text-4xl font-black text-indigo-700">
+        {potentialGain === null ? "—" : `+${potentialGain}`}
+        <span className="text-lg text-neutral-500"> pts</span>
+      </p>
+
+      <p className="mt-2 text-sm text-neutral-500">
+        Score potentiel :{" "}
+        <span className="font-black text-neutral-950">
+          {potentialScore === null ? "—" : potentialScore}/100
+        </span>
+      </p>
+    </div>
+
+    <p className="mt-5 text-sm leading-6 text-neutral-600">
+      Protège une zone courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
+    </p>
+
+    <button
+      type="button"
+      onClick={() => setCurrentView("guard-one")}
+      className="mt-6 w-full rounded-2xl bg-neutral-950 px-5 py-4 text-sm font-black text-white transition hover:bg-neutral-800"
+    >
+      Activer Guard One
+    </button>
+
+    <p className="mt-3 text-center text-xs font-medium text-neutral-500">
+      Récompense estimée si la zone est complétée.
+    </p>
+  </CardContent>
+</Card>
+</div>
+{/* ------------------------NEXT GUARD MOVE FIN------------------------------------ */}
+
+
+
+{/* ------------------------CAPITAL GUARD DEBUT------------------------------------ */}
+<div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
+<div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-neutral-950 via-emerald-950/30 to-neutral-950 p-6 shadow-2xl shadow-emerald-950/20 md:p-8">
+  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+  
+
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-300">
+        Capital Guard
+      </p>
+
+      <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-7xl">
+        {totalGuardCredits}
+      </h2>
+
+      <p className="mt-2 text-xl font-black text-neutral-400">
+        Guard Credits disponibles
+      </p>
+    </div>
+
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[220px]">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+        Aujourd’hui
+      </p>
+
+      <p className="mt-2 text-3xl font-black text-emerald-300">
+        +{todayGuardCredits}
+      </p>
+
+      <p className="mt-1 text-sm font-medium text-neutral-400">
+        crédits gagnés
+      </p>
+    </div>
+  </div>
+
+  <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-5">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <p className="text-sm font-bold text-neutral-400">
+          Prochaine récompense
+        </p>
+        <p className="mt-1 text-2xl font-black text-white">
+          Accès prioritaire aux Guard Rewards
+        </p>
+      </div>
+
+      <div className="text-right">
+        <p className="text-sm font-bold text-neutral-500">
+          Objectif
+        </p>
+        <p className="text-2xl font-black text-emerald-300">
+          {rewardTargetCredits}
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 transition-all"
+        style={{ width: `${rewardProgress}%` }}
+      />
+    </div>
+
+    <p className="mt-3 text-sm text-neutral-400">
+      Encore{" "}
+      <span className="font-black text-white">
+        {remainingCreditsToReward}
+      </span>{" "}
+      crédits pour débloquer la prochaine récompense.
+    </p>
+  </div>
+
+  <p className="mt-5 text-sm leading-6 text-neutral-500">
+    Chaque zone protégée complétée alimente ton Capital Guard. Les premières
+    récompenses partenaires arrivent bientôt.
+  </p>
+</div>
+
+{/* ------------------------CAPITAL GUARD FIN------------------------------------ */}
+
+
+{/* ------------------------SAUVEGARDE DEBUT------------------------------------ */}
+{!user && (
+  <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+    {!showAuthPanel ? (
+      <>
+        <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
+          Sauvegarde
+        </p>
+
+        <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">
+          Garde ton Capital Guard.
+        </h2>
+
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
+          Crée ton espace pour retrouver ton profil, tes Guard Credits et tes
+          zones protégées sur tous tes appareils.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => setShowAuthPanel(true)}
+          className="mt-6 rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+        >
+          Créer mon espace Guard
+        </button>
+      </>
+    ) : (
+      <AuthPanel
+        onAuthSuccess={() => {
+          setShowAuthPanel(false);
+        }}
+      />
+    )}
+  </div>
+)}
+{/* ------------------------SAUVEGARDE GUARD FIN------------------------------------ */}
+</div>
+
     </main>
   );
 }
