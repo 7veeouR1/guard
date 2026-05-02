@@ -484,6 +484,7 @@ export default function GuardApp() {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [showAuthPanel, setShowAuthPanel] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
@@ -755,371 +756,520 @@ const username =
   PROFILE_CONFIG[auditData?.profile?.profileName] || PROFILE_CONFIG["Profil à clarifier"];
 
 
-
-
-
 {/* -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   -------------------------------------------------------CE QUE LA PAGE AFFICHE----------------------------------------------------------------------------------------------------------------------
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */}
 
  
- 
- 
-  return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:py-16">
-        <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-end">
-          <div>
-          <div className="text-center md:text-left">
-  <div className="flex justify-center md:justify-start">
-    <ProductBadge />
-  </div>
+return (
+<main className="min-h-screen bg-neutral-950 text-white">
+  <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:py-16">
+        
 
+    {/* HERO APP DÉBUT*/}
+            <div className="text-center md:text-left">
+                <div className="flex justify-center md:justify-start">
+                  <ProductBadge />
+                </div>
 
-{/* ------------------------HERO APP DÉBUT------------------------------------ */}
-
-            {/*<h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
-              <span className="text-white">Tu ne manques pas de temps, tu le laisses s'échapper.</span>
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-300">
-              Ajoute une habitude, indique combien de minutes elle te coûte chaque jour,
-              et découvre ce que cette fuite représente vraiment sur une semaine, un mois, un an ou dix ans.
-            </p>
+                <p className="mb-6 text-xl font-black text-white">
+                  Bienvenue
+                  <span className="font-bold text-white">{username}</span>
+                </p>
             </div>
-                  <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
-        <button
-          type="button"
-          onClick={() => setCurrentView("guard-one")}
-          className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-neutral-950 transition hover:bg-neutral-200"
-        >
-          Activer Guard One
-        </button>
 
-        <button
-          type="button"
-          className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-        >
-            Découvrir mon Guard Score
+    {/* ONGLET PROFIL */}
+    {activeTab === "profile" && (
+      <>
+        {/* TON PROFIL GUARD + IMAGE DYNAMIQUE*/}    
+        {auditData?.profile && (
+          <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            {/* Bloc profil */}
+            <div className="min-h-[520px] rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-8 shadow-2xl shadow-indigo-950/30 md:p-10">
+              <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
+                Ton profil Guard
+              </p>
+
+                <h2 className="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">
+                  {auditData.profile.profileName}
+                </h2>
+
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-neutral-300 md:text-xl">
+                {auditData.profile.profileDescription}
+              </p>
+
+              <div className="mt-10 grid gap-4 md:grid-cols-2">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+                    Priorité
+                  </p>
+                  <p className="mt-3 text-3xl font-black text-white">
+                    {auditData.profile.priorityLabel}
+                  </p>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+                  Objectif recommandé
+                </p>
+                <p className="mt-3 text-3xl font-black text-indigo-300">
+                  {auditData.profile.recommendedMinutes} min / jour
+                </p>
+              </div>
+            </div>
+            
+
+              <div className="mt-10 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentView("guard-one")}
+                    className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+                  >
+                    Lancer ma première zone
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem("guard_audit");
+                      setAuditData(null);
+                    }}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+                  >
+                    Refaire l’audit
+                  </button>
+              </div>
+            </div>
+            
+            {/* BLOC IMAGE DYNAMIQUE */}
+            <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30">
+              <img
+                src={activeProfileConfig.image}
+                alt={activeProfileConfig.alt}
+                className="h-full w-full object-cover object-center"
+              />
+
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/45 via-transparent to-transparent" />
+
+              <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
+                  {activeProfileConfig.badge}
+              </div>
+            </div>
+          </div>
+        )} 
+
+    {/* CAPITAL GUARD + SAUVEGARDE */}
+    <div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
+      {/* BLOC CAPITAL GUARD */}
+      <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-neutral-950 via-emerald-950/30 to-neutral-950 p-6 shadow-2xl shadow-emerald-950/20 md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-300">
+              Capital Guard
+            </p>
+
+            <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-7xl">
+              {totalGuardCredits}
+            </h2>
+
+            <p className="mt-2 text-xl font-black text-neutral-400">
+              Guard Credits disponibles
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[220px]">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+              Aujourd’hui
+            </p>
+
+            <p className="mt-2 text-3xl font-black text-emerald-300">
+              +{todayGuardCredits}
+            </p>
+
+            <p className="mt-1 text-sm font-medium text-neutral-400">
+              crédits gagnés
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-neutral-400">
+                Prochaine récompense
+              </p>
+              <p className="mt-1 text-2xl font-black text-white">
+                Accès prioritaire aux Guard Rewards
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-sm font-bold text-neutral-500">
+                Objectif
+              </p>
+              <p className="text-2xl font-black text-emerald-300">
+                {rewardTargetCredits}
+              </p>
+            </div>
+          </div>
+
+        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 transition-all"
+                style={{ width: `${rewardProgress}%` }}/>
+        </div>
+
+              <p className="mt-3 text-sm text-neutral-400">
+                Encore{" "}
+                <span className="font-black text-white">
+                  {remainingCreditsToReward}
+                </span>{" "}
+                crédits pour débloquer la prochaine récompense.
+              </p>
+            </div>
+
+            <p className="mt-5 text-sm leading-6 text-neutral-500">
+              Chaque zone protégée complétée alimente ton Capital Guard. Les premières
+              récompenses partenaires arrivent bientôt.
+            </p>
+      </div>
+
+      {/* BLOC SAUVEGARDE / AUTH */}
+      {!user && (
+        <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
+          {!showAuthPanel ? (
+            <>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
+                Sauvegarde
+              </p>
+
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">
+                Garde ton Capital Guard.
+              </h2>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
+                Crée ton espace pour retrouver ton profil, tes Guard Credits et tes
+                zones protégées sur tous tes appareils.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setShowAuthPanel(true)}
+                className="mt-6 rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+              >
+                Créer mon espace Guard
+              </button>
+            </>
+          ) : (
+            <AuthPanel
+              onAuthSuccess={() => {
+                setShowAuthPanel(false);
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {user && (
+        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-sm text-neutral-400">
+            Connecté avec <span className="font-bold text-white">{user.email}</span>
+          </p>
+
+          <button
+            type="button"
+            onClick={() => supabase.auth.signOut()}
+            className="rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+          >
+            Déconnexion
           </button>
+        </div>
+      )}
+    </div>
+    </>
+    )}
 
-{/* ------------------------HERO APP FIN------------------------------------ */}
 
-<p className="mb-6 text-xl font-black text-white">
-  Bienvenue<span className="font-bold text-white">{username}</span>
-</p>
+    {/* ONGLET AUJOURD’HUI */}
+    {activeTab === "today" && (
+      <>
+        {/* BLOC AUJOURD’HUI */}
+        <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
+              <div className="flex items-center justify-between gap-4">
+                
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
+                  Aujourd’hui
+                </p>
 
-{/* ------------------------TON PROFIL GUARD DÉBUT------------------------------------ */}
-     
-{auditData?.profile && (
-  <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-    {/* Bloc profil */}
-    <div className="min-h-[520px] rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-8 shadow-2xl shadow-indigo-950/30 md:p-10">
-      <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
-        Ton profil Guard
-      </p>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-neutral-300">
+                  Guard Status
+                </span>
+              </div>
 
-      <h2 className="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">
-        {auditData.profile.profileName}
-      </h2>
+              <div className="mt-8">
+                <p className="text-7xl font-black leading-none tracking-tight text-white md:text-8xl">
+                  {formatMinutesAsHoursMinutes(undecidedMinutesToday)}
+                </p>
 
-      <p className="mt-6 max-w-3xl text-lg leading-8 text-neutral-300 md:text-xl">
-        {auditData.profile.profileDescription}
-      </p>
+                <p className="mt-2 text-2xl font-black text-neutral-400">
+                  à décider
+                </p>
+              </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-            Priorité
-          </p>
-          <p className="mt-3 text-3xl font-black text-white">
-            {auditData.profile.priorityLabel}
-          </p>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-300">
+                Sur les{" "}
+                <span className="font-black text-white">
+                  {formatMinutesAsHoursMinutes(availableMinutesToday)}
+                </span>{" "}
+                disponibles aujourd’hui, tu as laissé fuir{" "}
+                <span className="font-black text-rose-300">
+                  {leakedMinutesToday} min
+                </span>{" "}
+                et tu as protégé{" "}
+                <span className="font-black text-emerald-300">
+                  {cappedProtectedMinutesToday} min
+                </span>
+                .
+              </p>
+
+              <div className="mt-6 overflow-hidden rounded-full bg-white/10">
+                <div className="flex h-4 w-full">
+                  <div
+                    className="bg-rose-400"
+                    style={{
+                      width: `${
+                        availableMinutesToday === 0
+                          ? 0
+                          : (leakedMinutesToday / availableMinutesToday) * 100
+                      }%`,
+                    }}
+                  />
+
+                  <div
+                    className="bg-emerald-400"
+                    style={{
+                      width: `${
+                        availableMinutesToday === 0
+                          ? 0
+                          : (cappedProtectedMinutesToday / availableMinutesToday) * 100
+                      }%`,
+                    }}
+                  />
+
+                  <div
+                    className="bg-gradient-to-r from-indigo-500 to-violet-500"
+                    style={{
+                      width: `${
+                        availableMinutesToday === 0
+                          ? 0
+                          : (undecidedMinutesToday / availableMinutesToday) * 100
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+                    Fuites
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-rose-300">
+                    {leakedMinutesToday} min
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+                    Protégé
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-emerald-300">
+                    {cappedProtectedMinutesToday} min
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+                    Disponible
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-indigo-300">
+                    {formatMinutesAsHoursMinutes(availableMinutesToday)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView("guard-one")}
+                  className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+                >
+                  Protéger une zone maintenant
+                </button>
+
+                <p className="text-sm font-medium text-neutral-500">
+                  Ce que tu ne protèges pas finit souvent par être perdu.
+                </p>
+              </div>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-            Objectif recommandé
-          </p>
-          <p className="mt-3 text-3xl font-black text-indigo-300">
-            {auditData.profile.recommendedMinutes} min / jour
-          </p>
-        </div>
-      </div>
+        {/* NEXT GUARD MOVE */} 
+        <Card className="border-indigo-500/20 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 text-neutral-950 shadow-2xl shadow-indigo-950/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-700">
+                  Next Guard Move
+              </p>
 
-      <div className="mt-10 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setCurrentView("guard-one")}
-          className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-        >
-          Lancer ma première zone
-        </button>
+              <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
+                  +{potentialGain ?? "—"} pts
+              </span>
+            </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            localStorage.removeItem("guard_audit");
-            setAuditData(null);
-          }}
-          className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-        >
-          Refaire l’audit
-        </button>
-      </div>
-    </div>
+            <div className="mt-8">
+              <p className="text-6xl font-black leading-none tracking-tight">
+                  {recommendedGuardMinutes}
+                <span className="ml-2 text-2xl">min</span>
+              </p>
 
-{/* ------------------------TON PROFIL GUARD FIN------------------------------------ */}
+              <p className="mt-2 text-lg font-black text-neutral-500">
+                à optimiser dès maintenant
+              </p>
+            </div>
 
+            <div className="mt-6 rounded-3xl bg-white/70 p-4">
+              <p className="text-sm font-bold text-neutral-500">
+                Récompense potentielle
+              </p>
 
+              <p className="mt-2 text-4xl font-black text-indigo-700">
+                  {potentialGain === null ? "—" : `+${potentialGain}`}
+                <span className="text-lg text-neutral-500"> pts</span>
+              </p>
 
-{/* ------------------------IMAGE DYNAMIQUE PROFIL GUARD DÉBUT------------------------------------ */}
+              <p className="mt-2 text-sm text-neutral-500">
+                  Score potentiel :{" "}
+                <span className="font-black text-neutral-950">
+                    {potentialScore === null ? "—" : potentialScore}/100
+                </span>
+              </p>
+            </div>
 
-    <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30">
-      <img
-        src={activeProfileConfig.image}
-        alt={activeProfileConfig.alt}
-        className="h-full w-full object-cover object-center"
-      />
+              <p className="mt-5 text-sm leading-6 text-neutral-600">
+                Protège une zone courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
+              </p>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/45 via-transparent to-transparent" />
+              <button
+                type="button"
+                onClick={() => setCurrentView("guard-one")}
+                className="mt-6 w-full rounded-2xl bg-neutral-950 px-5 py-4 text-sm font-black text-white transition hover:bg-neutral-800"
+              >
+                Activer Guard One
+              </button>
 
-      <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
-        {activeProfileConfig.badge}
-      </div>
-    </div>
-  </div>
-  
-)}
+              <p className="mt-3 text-center text-xs font-medium text-neutral-500">
+                Récompense estimée si la zone est complétée.
+              </p>
+          </CardContent>
+        </Card>
 
-{/* ------------------------IMAGE DYNAMIQUE PROFIL GUARD FIN------------------------------------ */}
-
-
-{/* ------------------------AUJOURD'HUI DÉBUT------------------------------------ */}
-
-<div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
-    <div className="flex items-center justify-between gap-4">
-    
-    <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
-      Aujourd’hui
-    </p>
-
-    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-neutral-300">
-      Guard Status
-    </span>
-  </div>
-
-  <div className="mt-8">
-    <p className="text-7xl font-black leading-none tracking-tight text-white md:text-8xl">
-      {formatMinutesAsHoursMinutes(undecidedMinutesToday)}
-    </p>
-
-    <p className="mt-2 text-2xl font-black text-neutral-400">
-      à décider
-    </p>
-  </div>
-
-  <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-300">
-    Sur les{" "}
-    <span className="font-black text-white">
-      {formatMinutesAsHoursMinutes(availableMinutesToday)}
-    </span>{" "}
-    disponibles aujourd’hui, tu as laissé fuir{" "}
-    <span className="font-black text-rose-300">
-      {leakedMinutesToday} min
-    </span>{" "}
-    et tu as protégé{" "}
-    <span className="font-black text-emerald-300">
-      {cappedProtectedMinutesToday} min
-    </span>
-    .
-  </p>
-
-  <div className="mt-6 overflow-hidden rounded-full bg-white/10">
-    <div className="flex h-4 w-full">
-      <div
-        className="bg-rose-400"
-        style={{
-          width: `${
-            availableMinutesToday === 0
-              ? 0
-              : (leakedMinutesToday / availableMinutesToday) * 100
-          }%`,
-        }}
-      />
-
-      <div
-        className="bg-emerald-400"
-        style={{
-          width: `${
-            availableMinutesToday === 0
-              ? 0
-              : (cappedProtectedMinutesToday / availableMinutesToday) * 100
-          }%`,
-        }}
-      />
-
-      <div
-        className="bg-gradient-to-r from-indigo-500 to-violet-500"
-        style={{
-          width: `${
-            availableMinutesToday === 0
-              ? 0
-              : (undecidedMinutesToday / availableMinutesToday) * 100
-          }%`,
-        }}
-      />
-    </div>
-  </div>
-
-  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
-        Fuites
-      </p>
-      <p className="mt-2 text-2xl font-black text-rose-300">
-        {leakedMinutesToday} min
-      </p>
-    </div>
-
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
-        Protégé
-      </p>
-      <p className="mt-2 text-2xl font-black text-emerald-300">
-        {cappedProtectedMinutesToday} min
-      </p>
-    </div>
-
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
-        Disponible
-      </p>
-      <p className="mt-2 text-2xl font-black text-indigo-300">
-        {formatMinutesAsHoursMinutes(availableMinutesToday)}
-      </p>
-    </div>
-  </div>
-
-  <div className="mt-6 flex flex-wrap items-center gap-3">
-    <button
-      type="button"
-      onClick={() => setCurrentView("guard-one")}
-      className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-    >
-      Protéger une zone maintenant
-    </button>
-
-    <p className="text-sm font-medium text-neutral-500">
-      Ce que tu ne protèges pas finit souvent par être perdu.
-    </p>
-  </div>
-</div>
-</div>
-</div>
-
-{/* ------------------------AUJOURD'HUI FIN------------------------------------ */}
-
-
-{/* ------------------------JOURNÉE TYPE DÉBUT------------------------------------ */}
-
-<Card className="border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/90 to-violet-900/70 text-white shadow-2xl shadow-indigo-950/30 backdrop-blur">
+        {/* JOURNÉE TYPE */}
+        <Card className="border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/90 to-violet-900/70 text-white shadow-2xl shadow-indigo-950/30 backdrop-blur">
           <CardContent className="p-6">
             <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-300">
-                  Journée type
+                    Journée type
                 </div>
 
-                <h2 className="text-2xl font-bold">Comment tes 24h se répartissent ?</h2>
+                  <h2 className="text-2xl font-bold">Comment tes 24h se répartissent ?</h2>
 
-                <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-400">
-                  Les fuites ne mangent pas toute ta journée. Elles attaquent surtout ton espace de manœuvre :
-                  le temps qu’il te reste une fois le sommeil et le travail posés.
-                </p>
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-400">
+                      Les fuites ne mangent pas toute ta journée. Elles attaquent surtout ton espace de manœuvre :
+                      le temps qu’il te reste une fois le sommeil et le travail posés.
+                    </p>
 
                 <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-neutral-950 p-2">
                   <button
-                    onClick={() => setDayMode("standard")}
-                    className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-                      dayMode === "standard"
-                        ? "bg-white text-neutral-950"
-                        : "text-neutral-300 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    Standard
+                        onClick={() => setDayMode("standard")}
+                        className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                          dayMode === "standard"
+                            ? "bg-white text-neutral-950"
+                            : "text-neutral-300 hover:bg-white/10 hover:text-white"
+                        }`}
+                      >
+                        Standard
                   </button>
                   <button
-                    onClick={() => setDayMode("custom")}
-                    className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-                      dayMode === "custom"
-                        ? "bg-white text-neutral-950"
-                        : "text-neutral-300 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    Personnalisé
+                        onClick={() => setDayMode("custom")}
+                        className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                          dayMode === "custom"
+                            ? "bg-white text-neutral-950"
+                            : "text-neutral-300 hover:bg-white/10 hover:text-white"
+                        }`}
+                      >
+                        Personnalisé
                   </button>
                 </div>
 
-                {dayMode === "custom" && (
-                  <div className="mt-4 grid gap-4 rounded-3xl border border-white/10 bg-neutral-950 p-4 sm:grid-cols-2">
-                    <div>
-                      <label htmlFor="sleep-hours" className="text-sm font-medium text-neutral-300">
-                        Sommeil par jour
-                      </label>
-                      <input
-                        id="sleep-hours"
-                        type="number"
-                        min="0"
-                        max="24"
-                        step="0.5"
-                        value={customSleepHours}
-                        onChange={(event) => setCustomSleepHours(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
-                      />
-                    </div>
+                  {dayMode === "custom" && (
+                    <div className="mt-4 grid gap-4 rounded-3xl border border-white/10 bg-neutral-950 p-4 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="sleep-hours" className="text-sm font-medium text-neutral-300">
+                            Sommeil par jour
+                        </label>
+                          <input
+                            id="sleep-hours"
+                            type="number"
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            value={customSleepHours}
+                            onChange={(event) => setCustomSleepHours(event.target.value)}
+                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
+                          />
+                      </div>
 
-                    <div>
-                      <label htmlFor="work-hours" className="text-sm font-medium text-neutral-300">
-                        Travail / obligations
-                      </label>
-                      <input
-                        id="work-hours"
-                        type="number"
-                        min="0"
-                        max="24"
-                        step="0.5"
-                        value={customWorkHours}
-                        onChange={(event) => setCustomWorkHours(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
-                      />
+                      <div>
+                        <label htmlFor="work-hours" className="text-sm font-medium text-neutral-300">
+                            Travail / obligations
+                        </label>
+                          <input
+                            id="work-hours"
+                            type="number"
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            value={customWorkHours}
+                            onChange={(event) => setCustomWorkHours(event.target.value)}
+                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
+                          />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {dayBreakdown.overflowHours > 0 && (
-                  <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                    Tes fuites dépassent ton temps disponible hors sommeil et travail de {formatHours(dayBreakdown.overflowHours)}.
-                    Le graphique les limite donc à l’espace réellement disponible.
-                  </div>
-                )}
+                  {dayBreakdown.overflowHours > 0 && (
+                    <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        Tes fuites dépassent ton temps disponible hors sommeil et travail de {formatHours(dayBreakdown.overflowHours)}.
+                        Le graphique les limite donc à l’espace réellement disponible.
+                    </div>
+                  )}
 
                 <div className="mt-6 grid gap-3">
                   {daySegments.map((segment) => (
                     <div
-                      key={segment.label}
-                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-                    >
+                          key={segment.label}
+                          className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+                        >
                       <div className="flex items-center gap-3">
                         <span
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: segment.color }}
-                        />
+                              className="h-3 w-3 rounded-full"
+                              style={{ backgroundColor: segment.color }}
+                            />
                         <span className="font-medium">{segment.label}</span>
                       </div>
-                      <span className="text-sm text-neutral-300">{formatHours(segment.value)}</span>
+                        <span className="text-sm text-neutral-300">{formatHours(segment.value)}</span>
                     </div>
-                  ))}
+                      ))}
                 </div>
               </div>
 
@@ -1127,41 +1277,41 @@ const username =
                 <PieChart segments={daySegments} />
 
                 <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-5">
-  <div className="flex items-end justify-between gap-4">
-    <div>
-      <p className="text-xs uppercase tracking-wide text-neutral-400">
-        Guard Score
-      </p>
-      <p className="mt-2 text-5xl font-black">
-       {timeControlScore === null ? "—" : timeControlScore}
-<span className="text-xl text-neutral-500">/100</span>
-      </p>
-    </div>
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-neutral-400">
+                        Guard Score
+                      </p>
+                      <p className="mt-2 text-5xl font-black">
+                          {timeControlScore === null ? "—" : timeControlScore}
+                            <span className="text-xl text-neutral-500">/100</span>
+                      </p>
+                    </div>
 
-    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-neutral-300">
-      {timeControlLabel}
-    </div>
-  </div>
+                    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-neutral-300">
+                          {timeControlLabel}
+                    </div>
+                  </div>
 
-  <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
-    <div
-      className="h-full rounded-full bg-gradient-to-r from-rose-400 via-violet-500 to-indigo-500 transition-all"
-      style={{ width: `${timeControlScore ?? 0}%` }}
-    />
-  </div>
+                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-rose-400 via-violet-500 to-indigo-500 transition-all"
+                      style={{ width: `${timeControlScore ?? 0}%` }}
+                    />
+                  </div>
 
-  <p className="mt-3 text-sm text-neutral-400">
-    {timeControlMessage}
-  </p>
-</div>
+                      <p className="mt-3 text-sm text-neutral-400">
+                        {timeControlMessage}
+                      </p>
+                </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <p className="text-xs uppercase tracking-wide text-neutral-400">Fuites / temps libre</p>
                     <p className="mt-2 text-2xl font-black">
-                      {dayBreakdown.availableFreeHours === 0
-                        ? "0%"
-                        : `${Math.round(dayBreakdown.leakShareOfFreeTime)}%`}
+                          {dayBreakdown.availableFreeHours === 0
+                            ? "0%"
+                            : `${Math.round(dayBreakdown.leakShareOfFreeTime)}%`}
                     </p>
                     <p className="mt-1 text-sm text-neutral-400">de ton espace disponible</p>
                   </div>
@@ -1176,450 +1326,283 @@ const username =
             </div>
           </CardContent>
         </Card>
+      </>
+    )}
 
-{/* ------------------------JOURNÉE TYPE FIN------------------------------------ */}
-</div>
-
-
-
-{/* ------------------------AJOUTE TES HABITUDES DÉBUT------------------------------------ */}
-
+    {/* ONGLET AUJOURD’HUI */}
+    {activeTab === "leaks" && (
+      <>
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold">Ajoute tes habitudes</h2>
-                  <p className="mt-2 text-sm text-neutral-400">
-                    Commence avec un exemple ou crée ton propre “leak”.
-                  </p>
-                </div>
-
-                <button
-                  onClick={clearHabits}
-                  className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-                >
-                  Reset
-                </button>
-              </div>
-
-              <div className="mt-5 grid gap-3">
-                {PRESETS.map((preset) => (
-                  <button
-                    key={preset.name}
-                    onClick={() => addHabit(preset.name, preset.minutes)}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
-                  >
-                    <span className="font-medium">{preset.name}</span>
-                    <span className="text-sm text-neutral-400">{preset.minutes} min/j</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-6 rounded-3xl border border-white/10 bg-neutral-950 p-4">
-                <label className="text-sm font-medium text-neutral-300" htmlFor="habit-name">
-                  Habitude personnalisée
-                </label>
-                <input
-                  id="habit-name"
-                  value={customName}
-                  onChange={(event) => setCustomName(event.target.value)}
-                  placeholder="Ex : regarder mon téléphone au lit"
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-neutral-500 focus:border-white/30"
-                />
-
-                <label className="mt-4 block text-sm font-medium text-neutral-300" htmlFor="habit-minutes">
-                  Minutes par jour
-                </label>
-                <input
-                  id="habit-minutes"
-                  type="number"
-                  min="1"
-                  value={customMinutes}
-                  onChange={(event) => setCustomMinutes(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
-                />
-
-                <Button
-                  onClick={() => addHabit(customName, customMinutes)}
-                  disabled={!canAddCustomHabit}
-                  className="mt-4 w-full rounded-2xl bg-white py-4 font-bold text-neutral-950 hover:bg-neutral-200"
-                >
-                  <span className="mr-2 text-lg">+</span>
-                  Ajouter
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-{/* ------------------------AJOUTE TES HABITUDES FIN------------------------------------ */}
-
-
-
-{/* ------------------------TES FUITES ACTUELLES DÉBUT------------------------------------ */}
-
-          <div className="grid gap-6">
-            <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold">Tes fuites actuelles</h2>
-                    <p className="mt-2 text-sm text-neutral-400">
-                      {getImpactSentence(totalMinutesPerDay)}
-                    </p>
-                  </div>
-                  <IconBadge className="h-5 w-5 text-lg text-neutral-400">✦</IconBadge>
-                </div>
-
-                <div className="mt-5 grid gap-3">
-                  {habits.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-neutral-400">
-                      Ajoute une habitude pour voir son impact.
+          {/* AJOUTER HABITUDES */}
+              <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold">Ajoute tes habitudes</h2>
+                      <p className="mt-2 text-sm text-neutral-400">
+                        Commence avec un exemple ou crée ton propre “leak”.
+                      </p>
                     </div>
-                  ) : (
-                    habits.map((habit) => (
-                      <div
-                        key={habit.id}
-                        className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-                      >
-                        <div>
-                          <p className="font-semibold">{habit.name}</p>
-                          <p className="text-sm text-neutral-400">{habit.minutes} minutes par jour</p>
-                        </div>
-                        <button
-                          onClick={() => removeHabit(habit.id)}
-                          className="rounded-xl p-2 text-neutral-400 transition hover:bg-white/10 hover:text-white"
-                          aria-label={`Supprimer ${habit.name}`}
-                          title={`Supprimer ${habit.name}`}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
-{/* ------------------------TES FUITES ACTUELLES FIN------------------------------------ */}
-
-
-
-{/* ------------------------PERIODES DÉBUT------------------------------------ */}
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {PERIODS.map((period) => {
-                const periodMinutes = totalMinutesPerDay * period.days;
-
-                return (
-                  <div
-                    key={period.label}
-                    className="rounded-3xl border border-white/10 bg-white p-5 text-neutral-950"
-                  >
-                    <p className="inline-flex rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">{period.label}</p>
-                    <p className="mt-3 text-3xl font-black">{formatDuration(periodMinutes)}</p>
-                    <p className="mt-2 text-sm text-neutral-500">{formatImpactLine(periodMinutes)}</p>
+                    <button
+                      onClick={clearHabits}
+                      className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+                    >
+                      Reset
+                    </button>
                   </div>
-                );
-              })}
+
+                  <div className="mt-5 grid gap-3">
+                    {PRESETS.map((preset) => (
+                      <button
+                        key={preset.name}
+                        onClick={() => addHabit(preset.name, preset.minutes)}
+                        className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+                      >
+                        <span className="font-medium">{preset.name}</span>
+                        <span className="text-sm text-neutral-400">{preset.minutes} min/j</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 rounded-3xl border border-white/10 bg-neutral-950 p-4">
+                    <label className="text-sm font-medium text-neutral-300" htmlFor="habit-name">
+                      Habitude personnalisée
+                    </label>
+                    <input
+                      id="habit-name"
+                      value={customName}
+                      onChange={(event) => setCustomName(event.target.value)}
+                      placeholder="Ex : regarder mon téléphone au lit"
+                      className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-neutral-500 focus:border-white/30"
+                    />
+
+                    <label className="mt-4 block text-sm font-medium text-neutral-300" htmlFor="habit-minutes">
+                      Minutes par jour
+                    </label>
+                    <input
+                      id="habit-minutes"
+                      type="number"
+                      min="1"
+                      value={customMinutes}
+                      onChange={(event) => setCustomMinutes(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
+                    />
+
+                    <Button
+                      onClick={() => addHabit(customName, customMinutes)}
+                      disabled={!canAddCustomHabit}
+                      className="mt-4 w-full rounded-2xl bg-white py-4 font-bold text-neutral-950 hover:bg-neutral-200"
+                    >
+                      <span className="mr-2 text-lg">+</span>
+                      Ajouter
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+
+              <div className="grid gap-6">
+                <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="text-xl font-bold">Tes fuites actuelles</h2>
+                        <p className="mt-2 text-sm text-neutral-400">
+                          {getImpactSentence(totalMinutesPerDay)}
+                        </p>
+                      </div>
+                      <IconBadge className="h-5 w-5 text-lg text-neutral-400">✦</IconBadge>
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                      {habits.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-neutral-400">
+                          Ajoute une habitude pour voir son impact.
+                        </div>
+                      ) : (
+                        habits.map((habit) => (
+                          <div
+                            key={habit.id}
+                            className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+                          >
+                            <div>
+                              <p className="font-semibold">{habit.name}</p>
+                              <p className="text-sm text-neutral-400">{habit.minutes} minutes par jour</p>
+                            </div>
+                            <button
+                              onClick={() => removeHabit(habit.id)}
+                              className="rounded-xl p-2 text-neutral-400 transition hover:bg-white/10 hover:text-white"
+                              aria-label={`Supprimer ${habit.name}`}
+                              title={`Supprimer ${habit.name}`}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* PÉRIODES */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  {PERIODS.map((period) => {
+                    const periodMinutes = totalMinutesPerDay * period.days;
+
+                    return (
+                      <div
+                        key={period.label}
+                        className="rounded-3xl border border-white/10 bg-white p-5 text-neutral-950"
+                      >
+                        <p className="inline-flex rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">{period.label}</p>
+                        <p className="mt-3 text-3xl font-black">{formatDuration(periodMinutes)}</p>
+                        <p className="mt-2 text-sm text-neutral-500">{formatImpactLine(periodMinutes)}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* CONCLUSION */}
+                <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-bold">Tu sais quoi ?</h2>
+                    <p className="mt-3 text-2xl font-black leading-snug md:text-3xl">
+                      En 10 ans, ces habitudes peuvent te coûter {formatDuration(tenYearMinutes)}.
+                    </p>
+                    <p className="mt-3 text-neutral-400">
+                      Ce n’est pas une impression. Ce sont des semaines, parfois des mois, qui disparaissent dans des habitudes que tu n’as même pas forcément choisies.
+                    </p>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <button
+                        onClick={copyResultToClipboard}
+                        className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-neutral-950 transition hover:bg-neutral-200"
+                      >
+                        Copier mon résultat
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowShareModal(true)}
+                        className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                      >
+                        Partager
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+        </div>
+      </>
+    )}
+  </section>
+
+  {/* NAVIGATION BASSE */}
+  <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-950/90 px-4 py-3 backdrop-blur">
+      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab("profile")}
+          className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
+            activeTab === "profile"
+              ? "bg-white text-neutral-950"
+              : "text-neutral-400 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          Profil
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("today")}
+          className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
+            activeTab === "today"
+              ? "bg-white text-neutral-950"
+              : "text-neutral-400 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          Aujourd’hui
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("leaks")}
+          className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
+            activeTab === "leaks"
+              ? "bg-white text-neutral-950"
+              : "text-neutral-400 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          Fuites
+        </button>
+      </div>
+    </nav>
+
+    {/* MODAL PARTAGE */}
+    {showShareModal && (
+      <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 px-4 py-6 backdrop-blur-sm sm:items-center">
+        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-neutral-950 p-5 text-white shadow-2xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">
+                Partage
+              </p>
+              <h3 className="mt-2 text-2xl font-black">
+                Partage ton leak.
+              </h3>
             </div>
 
-{/* ------------------------PERIODES FIN------------------------------------ */}
+            <button
+              type="button"
+              onClick={() => setShowShareModal(false)}
+              className="rounded-full border border-white/10 px-3 py-1 text-sm text-neutral-400 transition hover:bg-white/10 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
 
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-neutral-300">
+            {buildShareText()}
+          </div>
 
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={copyResultToClipboard}
+              className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-neutral-950 transition hover:bg-neutral-200"
+            >
+              Copier le texte
+            </button>
 
-{/* ------------------------CONCLUSION------------------------------------ */}
+            <a
+              href={`https://twitter.com/intent/tweet?text=${getEncodedShareText()}&url=${getEncodedShareUrl()}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-white/10"
+            >
+              X / Twitter
+            </a>
 
-            <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-bold">Tu sais quoi ?</h2>
-                <p className="mt-3 text-2xl font-black leading-snug md:text-3xl">
-                  En 10 ans, ces habitudes peuvent te coûter {formatDuration(tenYearMinutes)}.
-                </p>
-                <p className="mt-3 text-neutral-400">
-                  Ce n’est pas une impression. Ce sont des semaines, parfois des mois, qui disparaissent dans des habitudes que tu n’as même pas forcément choisies.
-                </p>
-                <div className="mt-5 flex flex-wrap gap-3">
-  <button
-    onClick={copyResultToClipboard}
-    className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-neutral-950 transition hover:bg-neutral-200"
-  >
-    Copier mon résultat
-  </button>
+            <a
+              href={`https://wa.me/?text=${getEncodedShareText()}%20${getEncodedShareUrl()}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-white/10"
+            >
+              WhatsApp
+            </a>
 
-  <button
-    type="button"
-    onClick={() => setShowShareModal(true)}
-    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-  >
-    Partager
-  </button>
-</div>
-
-{/* ------------------------CONCLUSION------------------------------------ */}
-
-
- 
-{/* ------------------------BLOC DE PARTAGE DÉBUT------------------------------------ */}
-
-              </CardContent>
-            </Card>
+            <a
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${getEncodedShareUrl()}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-white/10"
+            >
+              LinkedIn
+            </a>
           </div>
         </div>
-      </section>
-      {showShareModal && (
-  <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 px-4 py-6 backdrop-blur-sm sm:items-center">
-    <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-neutral-950 p-5 text-white shadow-2xl">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">
-            Partage
-          </p>
-          <h3 className="mt-2 text-2xl font-black">
-            Partage ton leak.
-          </h3>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowShareModal(false)}
-          className="rounded-full border border-white/10 px-3 py-1 text-sm text-neutral-400 transition hover:bg-white/10 hover:text-white"
-        >
-          ✕
-        </button>
       </div>
-
-      <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-neutral-300">
-        {buildShareText()}
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <button
-          type="button"
-          onClick={copyResultToClipboard}
-          className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-neutral-950 transition hover:bg-neutral-200"
-        >
-          Copier le texte
-        </button>
-
-        <a
-          href={`https://twitter.com/intent/tweet?text=${getEncodedShareText()}&url=${getEncodedShareUrl()}`}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-white/10"
-        >
-          X / Twitter
-        </a>
-
-        <a
-          href={`https://wa.me/?text=${getEncodedShareText()}%20${getEncodedShareUrl()}`}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-white/10"
-        >
-          WhatsApp
-        </a>
-
-        <a
-          href={`https://www.linkedin.com/sharing/share-offsite/?url=${getEncodedShareUrl()}`}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-white/10"
-        >
-          LinkedIn
-        </a>
-      </div>
-    </div>
-  </div>
-)}
-
-{/* ------------------------BLOC DE PARTAGE FIN------------------------------------ */}
-
-
-{/* ------------------------NEXT GUARD MOVE DEBUT------------------------------------ */}
-<div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
-<Card className="border-indigo-500/20 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 text-neutral-950 shadow-2xl shadow-indigo-950/20">
-  <CardContent className="p-6">
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-700">
-        Next Guard Move
-      </p>
-
-      <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
-        +{potentialGain ?? "—"} pts
-      </span>
-    </div>
-
-    <div className="mt-8">
-      <p className="text-6xl font-black leading-none tracking-tight">
-        {recommendedGuardMinutes}
-        <span className="ml-2 text-2xl">min</span>
-      </p>
-
-      <p className="mt-2 text-lg font-black text-neutral-500">
-        à optimiser dès maintenant
-      </p>
-    </div>
-
-    <div className="mt-6 rounded-3xl bg-white/70 p-4">
-      <p className="text-sm font-bold text-neutral-500">
-        Récompense potentielle
-      </p>
-
-      <p className="mt-2 text-4xl font-black text-indigo-700">
-        {potentialGain === null ? "—" : `+${potentialGain}`}
-        <span className="text-lg text-neutral-500"> pts</span>
-      </p>
-
-      <p className="mt-2 text-sm text-neutral-500">
-        Score potentiel :{" "}
-        <span className="font-black text-neutral-950">
-          {potentialScore === null ? "—" : potentialScore}/100
-        </span>
-      </p>
-    </div>
-
-    <p className="mt-5 text-sm leading-6 text-neutral-600">
-      Protège une zone courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
-    </p>
-
-    <button
-      type="button"
-      onClick={() => setCurrentView("guard-one")}
-      className="mt-6 w-full rounded-2xl bg-neutral-950 px-5 py-4 text-sm font-black text-white transition hover:bg-neutral-800"
-    >
-      Activer Guard One
-    </button>
-
-    <p className="mt-3 text-center text-xs font-medium text-neutral-500">
-      Récompense estimée si la zone est complétée.
-    </p>
-  </CardContent>
-</Card>
-</div>
-{/* ------------------------NEXT GUARD MOVE FIN------------------------------------ */}
-
-
-
-{/* ------------------------CAPITAL GUARD DEBUT------------------------------------ */}
-<div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
-<div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-neutral-950 via-emerald-950/30 to-neutral-950 p-6 shadow-2xl shadow-emerald-950/20 md:p-8">
-  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-  
-
-    <div>
-      <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-300">
-        Capital Guard
-      </p>
-
-      <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-7xl">
-        {totalGuardCredits}
-      </h2>
-
-      <p className="mt-2 text-xl font-black text-neutral-400">
-        Guard Credits disponibles
-      </p>
-    </div>
-
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[220px]">
-      <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-        Aujourd’hui
-      </p>
-
-      <p className="mt-2 text-3xl font-black text-emerald-300">
-        +{todayGuardCredits}
-      </p>
-
-      <p className="mt-1 text-sm font-medium text-neutral-400">
-        crédits gagnés
-      </p>
-    </div>
-  </div>
-
-  <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-5">
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-bold text-neutral-400">
-          Prochaine récompense
-        </p>
-        <p className="mt-1 text-2xl font-black text-white">
-          Accès prioritaire aux Guard Rewards
-        </p>
-      </div>
-
-      <div className="text-right">
-        <p className="text-sm font-bold text-neutral-500">
-          Objectif
-        </p>
-        <p className="text-2xl font-black text-emerald-300">
-          {rewardTargetCredits}
-        </p>
-      </div>
-    </div>
-
-    <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
-      <div
-        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 transition-all"
-        style={{ width: `${rewardProgress}%` }}
-      />
-    </div>
-
-    <p className="mt-3 text-sm text-neutral-400">
-      Encore{" "}
-      <span className="font-black text-white">
-        {remainingCreditsToReward}
-      </span>{" "}
-      crédits pour débloquer la prochaine récompense.
-    </p>
-  </div>
-
-  <p className="mt-5 text-sm leading-6 text-neutral-500">
-    Chaque zone protégée complétée alimente ton Capital Guard. Les premières
-    récompenses partenaires arrivent bientôt.
-  </p>
-</div>
-
-{/* ------------------------CAPITAL GUARD FIN------------------------------------ */}
-
-
-{/* ------------------------SAUVEGARDE DEBUT------------------------------------ */}
-{!user && (
-  <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
-    {!showAuthPanel ? (
-      <>
-        <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
-          Sauvegarde
-        </p>
-
-        <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">
-          Garde ton Capital Guard.
-        </h2>
-
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
-          Crée ton espace pour retrouver ton profil, tes Guard Credits et tes
-          zones protégées sur tous tes appareils.
-        </p>
-
-        <button
-          type="button"
-          onClick={() => setShowAuthPanel(true)}
-          className="mt-6 rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-        >
-          Créer mon espace Guard
-        </button>
-      </>
-    ) : (
-      <AuthPanel
-        onAuthSuccess={() => {
-          setShowAuthPanel(false);
-        }}
-      />
     )}
-  </div>
+  </main>
 )}
-{/* ------------------------SAUVEGARDE GUARD FIN------------------------------------ */}
-</div>
-
-    </main>
-  );
-}
