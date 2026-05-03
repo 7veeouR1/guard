@@ -51,6 +51,8 @@ export default function AuthPanel({ onAuthSuccess }) {
             password,
           });
 
+          console.log("AUTH RESPONSE:", response.data);
+
       if (response.error) {
         setErrorMessage(response.error.message);
         return;
