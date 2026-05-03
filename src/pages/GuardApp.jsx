@@ -470,6 +470,27 @@ const PROFILE_CONFIG = {
     },
   };
 
+  const INVESTMENT_TERRITORIES = [
+    "Business",
+    "Corps",
+    "Apprentissage",
+    "Création",
+    "Admin",
+    "Récupération",
+    "Relations",
+  ];
+  
+  function getStartOfWeek(date = new Date()) {
+    const currentDate = new Date(date);
+    const day = currentDate.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+  
+    currentDate.setDate(currentDate.getDate() + diff);
+    currentDate.setHours(0, 0, 0, 0);
+  
+    return currentDate;
+  }
+
 export default function GuardApp() {
   const [currentView, setCurrentView] = useState("calculator");
   const [guardSessions, setGuardSessions] = useState([]);
@@ -609,6 +630,55 @@ export default function GuardApp() {
     }, 0);
   }, [todayGuardSessions]);
 
+  const weeklyInvestmentStats = useMemo(() => {
+    const startOfWeek = getStartOfWeek();
+  
+    const weekSessions = guardSessions.filter((session) => {
+      if (!session.startedAt) return false;
+  
+      const sessionDate = new Date(session.startedAt);
+      return sessionDate >= startOfWeek;
+    });
+  
+    const investmentsByTerritory = INVESTMENT_TERRITORIES.map((territory) => {
+      const totalMinutes = weekSessions.reduce((total, session) => {
+        if (session.type !== territory) return total;
+        return total + normalizeMinutes(session.actualDuration);
+      }, 0);
+  
+      return {
+        territory,
+        totalMinutes,
+      };
+    });
+  
+    const totalInvestedMinutes = investmentsByTerritory.reduce((total, item) => {
+      return total + item.totalMinutes;
+    }, 0);
+  
+    const sortedInvestments = [...investmentsByTerritory].sort(
+      (a, b) => b.totalMinutes - a.totalMinutes
+    );
+  
+    const dominantTerritory =
+      sortedInvestments.find((item) => item.totalMinutes > 0)?.territory || null;
+  
+    const weakestTerritory =
+      sortedInvestments
+        .slice()
+        .reverse()
+        .find((item) => item.totalMinutes === 0)?.territory ||
+      sortedInvestments[sortedInvestments.length - 1]?.territory ||
+      null;
+  
+    return {
+      investmentsByTerritory,
+      totalInvestedMinutes,
+      dominantTerritory,
+      weakestTerritory,
+    };
+  }, [guardSessions]);
+
   const yearlyMinutes = totalMinutesPerDay * 365;
   const tenYearMinutes = totalMinutesPerDay * 3650;
   const canAddCustomHabit = customName.trim().length > 0 && normalizeMinutes(customMinutes) > 0;
@@ -620,6 +690,7 @@ export default function GuardApp() {
     workHours,
     leakMinutes: totalMinutesPerDay,
   });
+  
 
 
 
@@ -682,7 +753,7 @@ const timeControlLabel = hasGuardData
 
 const timeControlMessage = hasGuardData
   ? getTimeControlMessage(timeControlScore)
-  : "Ajoute une fuite ou protège une zone pour calculer ton Guard Score.";
+  : "Ajoute une fuite ou investis du temps pour calculer ton Guard Score.";
 
   const daySegments = [
   { label: "Sommeil", value: dayBreakdown.sleepHours, color: "#0A043B" },
@@ -696,7 +767,7 @@ const username =
   user?.user_metadata?.username || 
   user?.email?.split("@")[0] || "toi";
 
-  function addHabit(name, minutes) {
+function addHabit(name, minutes) {
     const cleanName = String(name || "").trim();
     const cleanMinutes = normalizeMinutes(minutes);
   
@@ -892,7 +963,7 @@ const username =
 
   const activeProfileConfig =
   PROFILE_CONFIG[auditData?.profile?.profileName] || PROFILE_CONFIG["Profil à clarifier"];
-
+  
 
 {/* -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   -------------------------------------------------------CE QUE LA PAGE AFFICHE----------------------------------------------------------------------------------------------------------------------
@@ -1004,6 +1075,99 @@ return (
             </div>
           </div>
         )} 
+
+    {/* INVESTISSEMENTS DE LA SEMAINE */}
+          <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20 md:p-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
+                  Investissements de la semaine
+                </p>
+
+                <h2 className="mt-4 text-4xl font-black tracking-tight text-white md:text-6xl">
+                  {formatMinutesAsHoursMinutes(
+                    weeklyInvestmentStats.totalInvestedMinutes
+                  )}
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-neutral-400 md:text-base">
+                  Temps investi depuis lundi dans tes territoires.
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[240px]">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+                  Territoire dominant
+                </p>
+
+                <p className="mt-2 text-2xl font-black text-white">
+                  {weeklyInvestmentStats.dominantTerritory || "Aucun"}
+                </p>
+
+                <p className="mt-2 text-sm text-neutral-400">
+                  {weeklyInvestmentStats.dominantTerritory
+                    ? "C’est là que ton temps construit le plus cette semaine."
+                    : "Lance une session investie pour commencer."}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-3">
+              {weeklyInvestmentStats.investmentsByTerritory.map((item) => {
+                const percentage =
+                  weeklyInvestmentStats.totalInvestedMinutes === 0
+                    ? 0
+                    : Math.round(
+                        (item.totalMinutes /
+                          weeklyInvestmentStats.totalInvestedMinutes) *
+                          100
+                      );
+
+                return (
+                  <div
+                    key={item.territory}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-black text-white">{item.territory}</p>
+                        <p className="mt-1 text-sm text-neutral-500">
+                          {percentage}% de ton temps investi
+                        </p>
+                      </div>
+
+                      <p className="text-lg font-black text-indigo-300">
+                        {formatMinutesAsHoursMinutes(item.totalMinutes)}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-all"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-5">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+                Lecture Guard
+              </p>
+
+              <p className="mt-3 text-lg font-black leading-7 text-white">
+                {weeklyInvestmentStats.totalInvestedMinutes === 0
+                  ? "Cette semaine n’a pas encore commencé dans Guard."
+                  : `Ton temps investi révèle ce que tu construis vraiment. ${
+                      weeklyInvestmentStats.weakestTerritory
+                        ? `${weeklyInvestmentStats.weakestTerritory} est ton territoire le moins alimenté cette semaine.`
+                        : ""
+                    }`}
+              </p>
+            </div>
+          </div>
 
     {/* CAPITAL GUARD + SAUVEGARDE */}
     <div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
@@ -1307,7 +1471,7 @@ return (
                 </button>
 
                 <p className="text-sm font-medium text-neutral-500">
-                  Ce que tu ne protèges pas finit souvent par être perdu.
+                  Ce que tu n'investis pas finit souvent par être perdu.
                 </p>
               </div>
         </div>
@@ -1332,7 +1496,7 @@ return (
               </p>
 
               <p className="mt-2 text-lg font-black text-neutral-500">
-                à optimiser dès maintenant
+                à faire fructifier dès maintenant
               </p>
             </div>
 
@@ -1355,7 +1519,7 @@ return (
             </div>
 
               <p className="mt-5 text-sm leading-6 text-neutral-600">
-                Commence par une session courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
+                Commence par une session courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps investi.
               </p>
 
               <button
@@ -1363,7 +1527,7 @@ return (
                 onClick={() => setCurrentView("guard-one")}
                 className="mt-6 w-full rounded-2xl bg-neutral-950 px-5 py-4 text-sm font-black text-white transition hover:bg-neutral-800"
               >
-                Activer Guard One
+                Investir du temps
               </button>
 
               <p className="mt-3 text-center text-xs font-medium text-neutral-500">
@@ -1746,7 +1910,7 @@ return (
               : "text-neutral-400 hover:bg-white/10 hover:text-white"
           }`}
         >
-          Fuites
+          Consommation
         </button>
       </div>
     </nav>
