@@ -19,7 +19,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl lg:mx-0">
-          Guard te montre où part ton temps chaque jour, combien il t’en reste vraiment, et t’aide à protéger les créneaux qui comptent.
+          Ton temps est soit consommé, soit investi.
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
@@ -60,7 +60,7 @@ export default function LandingPage() {
       Guard dans la vraie vie
     </p>
     <h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl">
-      Le temps protégé ne sert pas à faire plus.
+      Le temps investi ne sert pas à faire plus.
       Il sert à vivre mieux.
     </h2>
     <p className="mt-4 text-lg leading-8 text-neutral-400">
@@ -101,7 +101,7 @@ export default function LandingPage() {
             Focus
           </div>
           <h3 className="max-w-md text-3xl font-light leading-tight md:text-4xl">
-            Protège tes vraies heures utiles. Les plus productives.
+            Capitalise sur tes heures utiles. Les plus productives.
           </h3>
         </div>
       </div>
