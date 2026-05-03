@@ -689,7 +689,8 @@ const timeControlMessage = hasGuardData
 ];
 
 const username =
-  user?.user_metadata?.username || user?.email?.split("@")[0] || "";
+  user?.user_metadata?.username || 
+  user?.email?.split("@")[0] || "toi";
 
   function addHabit(name, minutes) {
     const cleanName = String(name || "").trim();
@@ -830,9 +831,21 @@ return (
                 </div>
 
                 <p className="mb-6 text-xl font-black text-white">
-                  Bienvenue
+                  Bienvenue,
                   <span className="font-bold text-white">{username}</span>
                 </p>
+
+                {user && (
+                  <div className="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-left">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+                      Espace Guard actif
+                    </p>
+
+                    <p className="mt-1 text-sm font-medium text-neutral-300">
+                      Connecté avec <span className="font-bold text-white">{user.email}</span>
+                    </p>
+                  </div>
+                )}
             </div>
 
     {/* ONGLET PROFIL */}
