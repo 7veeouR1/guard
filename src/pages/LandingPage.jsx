@@ -15,29 +15,40 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-5xl font-black tracking-tight md:text-7xl">
-            Arrête de vivre par défaut.
+          Chaque jour, tu reçois le même capital d’heures.
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl lg:mx-0">
-          Ton temps est soit consommé, soit investi.
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl">
+  Guard t’aide à voir ce que tu consommes, ce que tu investis, et ce qu’il te reste à décider.
+</p>
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+          <div className="mt-8 flex flex-col items-center gap-4">
             <Link
               to="/app"
-              className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+              className="w-full max-w-xl rounded-2xl bg-indigo-400 px-6 py-4 text-center text-sm font-black text-white-950 transition hover:bg-neutral-200 md:text-base"
             >
               Découvrir mon Guard Score
             </Link>
 
-            <a
-              href="#method"
-              className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:bg-white/10"
-            >
-              Comprendre la méthode
-            </a>
+            <div className="grid w-full max-w-xl grid-cols-2 gap-3">
+              <Link
+                to="/app?auth=signup"
+                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-sm font-black text-white transition hover:bg-white/10 md:text-base"
+              >
+                S'inscrire
+              </Link>
+
+              <Link
+                to="/app?auth=signin"
+                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-sm font-black text-white transition hover:bg-white/10 md:text-base"
+              >
+                Se connecter
+              </Link>
+            </div>
           </div>
-        </div>
+      </div>
 
         {/* Image hero à droite */}
         <div className="relative">
@@ -232,7 +243,7 @@ export default function LandingPage() {
     <div className="mt-8 flex justify-center">
       <Link
         to="/app"
-        className="rounded-2xl bg-white px-7 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+        className="rounded-2xl bg-indigo-500 px-7 py-4 text-sm font-black text-white-950 transition hover:bg-neutral-200"
       >
         Découvrir mon Guard Score
       </Link>
