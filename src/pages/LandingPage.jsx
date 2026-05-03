@@ -20,8 +20,8 @@ export default function LandingPage() {
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl lg:mx-0">
           <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-300 md:text-xl">
-  Guard t’aide à voir ce que tu consommes, ce que tu investis, et ce qu’il te reste à décider.
-</p>
+            Guard t’aide à voir ce que tu consommes, ce que tu investis, et ce qu’il te reste à décider.
+          </p>
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-4">
@@ -147,7 +147,7 @@ export default function LandingPage() {
             La méthode Guard
           </p>
           <h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl">
-            Voir. Protéger. Décider.
+            Voir, Investir, Décider.
           </h2>
           <p className="mt-4 text-lg leading-8 text-neutral-400">
             Une méthode simple pour transformer une journée floue en système
@@ -160,7 +160,7 @@ export default function LandingPage() {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">
               Measure
             </p>
-            <h2 className="mt-4 text-2xl font-black">Voir ce qui fuit.</h2>
+            <h2 className="mt-4 text-2xl font-black">Voir ce que tu consommes.</h2>
             <p className="mt-3 text-sm leading-6 text-neutral-400">
               Identifie les habitudes qui avalent ton espace disponible sans
               que tu t’en rendes compte.
@@ -173,8 +173,7 @@ export default function LandingPage() {
             </p>
             <h2 className="mt-4 text-2xl font-black">Protéger ton temps.</h2>
             <p className="mt-3 text-sm leading-6 text-neutral-400">
-              Active Guard One et transforme une intention floue en zone
-              protégée.
+              Active Guard One et transforme une intention floue en temps investi.
             </p>
           </div>
 
@@ -198,19 +197,12 @@ export default function LandingPage() {
             Guard One
           </p>
           <h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl">
-            Transforme une intention en zone protégée.
+            Transforme une intention en investissement.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-8 text-neutral-400">
-            Lance une session, protège ton attention, puis laisse Guard
+            Lance une session, focalise ton attention, puis laisse Guard
             mesurer ce que tu reprends réellement.
           </p>
-
-          <Link
-            to="/app"
-            className="mt-8 inline-flex rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-          >
-            Activer Guard One
-          </Link>
         </div>
 
         <div className="relative">
@@ -233,11 +225,11 @@ export default function LandingPage() {
     </p>
 
     <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
-      Tu ne peux pas protéger ce que tu ne vois pas.
+      Tu peux investir ton temps comme ton argent.
     </h2>
 
     <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-neutral-300">
-      Découvre ton Guard Score, identifie tes fuites de temps et lance ta première zone protégée.
+      Découvre ton Guard Score, identifie tes fuites de temps et lance ta première session investie.
     </p>
 
     <div className="mt-8 flex justify-center">
