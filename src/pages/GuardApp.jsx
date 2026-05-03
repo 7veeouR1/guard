@@ -3,6 +3,10 @@ import GuardOne from "../components/GuardOne";
 import GuardAudit from "../components/GuardAudit";
 import AuthPanel from "../components/AuthPanel";
 import { supabase } from "../lib/supabaseClient";
+import {
+  syncLocalGuardDataToSupabase,
+  loadGuardDataFromSupabase,
+} from "../lib/guardSync";
 
 const PRESETS = [
   { name: "Scroll réseaux sociaux", minutes: 45 },
@@ -485,6 +489,7 @@ export default function GuardApp() {
   const [user, setUser] = useState(null);
   const [showAuthPanel, setShowAuthPanel] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [recentlyAddedPreset, setRecentlyAddedPreset] = useState(null);
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
@@ -503,16 +508,62 @@ export default function GuardApp() {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-    });
+    async function initializeAuth() {
+      const { data } = await supabase.auth.getSession();
+  
+      const currentSession = data.session;
+      const currentUser = currentSession?.user ?? null;
+  
+      setSession(currentSession);
+      setUser(currentUser);
+  
+      if (currentUser) {
+        await syncLocalGuardDataToSupabase(currentUser.id);
+        const remoteData = await loadGuardDataFromSupabase(currentUser.id);
+  
+        if (remoteData?.profile?.profile_json) {
+          const hydratedAudit = {
+            answers: remoteData.profile.answers_json || {},
+            profile: remoteData.profile.profile_json,
+            completedAt: remoteData.profile.created_at,
+          };
+  
+          setAuditData(hydratedAudit);
+          localStorage.setItem("guard_audit", JSON.stringify(hydratedAudit));
+        }
+  
+        if (remoteData?.sessions?.length > 0) {
+          const hydratedSessions = remoteData.sessions.map((session) => ({
+            id: session.local_id || session.id,
+            type: session.type,
+            plannedDuration: session.planned_duration,
+            actualDuration: session.actual_duration,
+            quality: session.quality,
+            qualityScore: session.quality_score,
+            creditsEarned: session.credits_earned || 0,
+            startedAt: session.started_at,
+            endedAt: session.ended_at,
+          }));
+  
+          setGuardSessions(hydratedSessions);
+          localStorage.setItem("guard_sessions", JSON.stringify(hydratedSessions));
+        }
+      }
+    }
+  
+    initializeAuth();
   
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      const currentUser = currentSession?.user ?? null;
+  
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      setUser(currentUser);
+  
+      if (currentUser) {
+        await syncLocalGuardDataToSupabase(currentUser.id);
+      }
     });
   
     return () => subscription.unsubscribe();
@@ -643,9 +694,9 @@ const username =
   function addHabit(name, minutes) {
     const cleanName = String(name || "").trim();
     const cleanMinutes = normalizeMinutes(minutes);
-
+  
     if (!cleanName || cleanMinutes <= 0) return;
-
+  
     setHabits((current) => [
       ...current,
       {
@@ -654,7 +705,13 @@ const username =
         minutes: cleanMinutes,
       },
     ]);
-
+  
+    setRecentlyAddedPreset(cleanName);
+  
+    window.setTimeout(() => {
+      setRecentlyAddedPreset(null);
+    }, 1000);
+  
     setCustomName("");
     setCustomMinutes(30);
   }
@@ -825,7 +882,7 @@ return (
                     onClick={() => setCurrentView("guard-one")}
                     className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
                   >
-                    Lancer ma première zone
+                    Investir mon temps
                   </button>
 
                   <button
@@ -928,7 +985,7 @@ return (
             </div>
 
             <p className="mt-5 text-sm leading-6 text-neutral-500">
-              Chaque zone protégée complétée alimente ton Capital Guard. Les premières
+              Chaque session investie alimente ton Capital Guard. Les premières
               récompenses partenaires arrivent bientôt.
             </p>
       </div>
@@ -947,8 +1004,7 @@ return (
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
-                Crée ton espace pour retrouver ton profil, tes Guard Credits et tes
-                zones protégées sur tous tes appareils.
+                Crée ton espace pour retrouver ton profil, tes Guard Credits et le temps que tu as investi sur tous tes appareils.
               </p>
 
               <button
@@ -961,10 +1017,28 @@ return (
             </>
           ) : (
             <AuthPanel
-              onAuthSuccess={() => {
-                setShowAuthPanel(false);
-              }}
-            />
+  onAuthSuccess={async (_session, authenticatedUser) => {
+    const currentUser = authenticatedUser || user;
+
+    if (currentUser?.id) {
+      await syncLocalGuardDataToSupabase(currentUser.id);
+      const remoteData = await loadGuardDataFromSupabase(currentUser.id);
+
+      if (remoteData?.profile?.profile_json) {
+        const hydratedAudit = {
+          answers: remoteData.profile.answers_json || {},
+          profile: remoteData.profile.profile_json,
+          completedAt: remoteData.profile.created_at,
+        };
+
+        setAuditData(hydratedAudit);
+        localStorage.setItem("guard_audit", JSON.stringify(hydratedAudit));
+      }
+    }
+
+    setShowAuthPanel(false);
+  }}
+/>
           )}
         </div>
       )}
@@ -1020,11 +1094,11 @@ return (
                 <span className="font-black text-white">
                   {formatMinutesAsHoursMinutes(availableMinutesToday)}
                 </span>{" "}
-                disponibles aujourd’hui, tu as laissé fuir{" "}
+                disponibles aujourd’hui, tu as consommé{" "}
                 <span className="font-black text-rose-300">
                   {leakedMinutesToday} min
                 </span>{" "}
-                et tu as protégé{" "}
+                et tu as investi{" "}
                 <span className="font-black text-emerald-300">
                   {cappedProtectedMinutesToday} min
                 </span>
@@ -1071,7 +1145,7 @@ return (
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
-                    Fuites
+                    Consommations
                   </p>
                   <p className="mt-2 text-2xl font-black text-rose-300">
                     {leakedMinutesToday} min
@@ -1080,7 +1154,7 @@ return (
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
-                    Protégé
+                    Investissements
                   </p>
                   <p className="mt-2 text-2xl font-black text-emerald-300">
                     {cappedProtectedMinutesToday} min
@@ -1103,7 +1177,7 @@ return (
                   onClick={() => setCurrentView("guard-one")}
                   className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
                 >
-                  Protéger une zone maintenant
+                  Comment vas-tu gérer ce temps ?
                 </button>
 
                 <p className="text-sm font-medium text-neutral-500">
@@ -1155,7 +1229,7 @@ return (
             </div>
 
               <p className="mt-5 text-sm leading-6 text-neutral-600">
-                Protège une zone courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
+                Commence par une session courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps protégé.
               </p>
 
               <button
@@ -1355,12 +1429,25 @@ return (
                   <div className="mt-5 grid gap-3">
                     {PRESETS.map((preset) => (
                       <button
-                        key={preset.name}
-                        onClick={() => addHabit(preset.name, preset.minutes)}
-                        className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+                      key={preset.name}
+                      onClick={() => addHabit(preset.name, preset.minutes)}
+                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                        recentlyAddedPreset === preset.name
+                          ? "border-emerald-400 bg-emerald-400/15 text-emerald-100"
+                          : "border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      }`}
                       >
                         <span className="font-medium">{preset.name}</span>
-                        <span className="text-sm text-neutral-400">{preset.minutes} min/j</span>
+                      
+                        <span className="flex items-center gap-2 text-sm">
+                          {recentlyAddedPreset === preset.name && (
+                            <span className="font-black text-emerald-300">✓ Ajouté</span>
+                          )}
+                      
+                          <span className={recentlyAddedPreset === preset.name ? "text-emerald-200" : "text-neutral-400"}>
+                            {preset.minutes} min/j
+                          </span>
+                        </span>
                       </button>
                     ))}
                   </div>
