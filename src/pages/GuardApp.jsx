@@ -7,7 +7,7 @@ import {
         syncLocalGuardDataToSupabase,
         loadGuardDataFromSupabase,
       } from "../lib/guardSync";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const PRESETS = [
   { name: "Scroll réseaux sociaux", minutes: 45 },
@@ -492,6 +492,8 @@ export default function GuardApp() {
   const [activeTab, setActiveTab] = useState("profile");
   const [recentlyAddedPreset, setRecentlyAddedPreset] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const authModeFromUrl = searchParams.get("auth");
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
@@ -780,6 +782,82 @@ const username =
     } else {
       setShowShareModal(true);
     }
+  }
+
+  if (!user && (authModeFromUrl === "signup" || authModeFromUrl === "signin")) {
+    return (
+      <main className="min-h-screen bg-neutral-950 text-white">
+        <section className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-12">
+          <div className="mb-8 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
+              Espace Guard
+            </p>
+  
+            <h1 className="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">
+              {authModeFromUrl === "signup"
+                ? "Crée ton espace Guard"
+                : "Connecte-toi à Guard"}
+            </h1>
+  
+            <p className="mt-4 text-sm leading-6 text-neutral-400">
+              Retrouve ton profil, ton Capital Guard et tes sessions investies.
+            </p>
+          </div>
+  
+          <AuthPanel
+            initialMode={authModeFromUrl}
+            onAuthSuccess={async (authSession, authenticatedUser) => {
+              setSession(authSession);
+              setUser(authenticatedUser);
+  
+              if (authenticatedUser?.id) {
+                await syncLocalGuardDataToSupabase(authenticatedUser.id);
+                const remoteData = await loadGuardDataFromSupabase(authenticatedUser.id);
+  
+                if (remoteData?.profile?.profile_json) {
+                  const hydratedAudit = {
+                    answers: remoteData.profile.answers_json || {},
+                    profile: remoteData.profile.profile_json,
+                    completedAt: remoteData.profile.created_at,
+                  };
+  
+                  setAuditData(hydratedAudit);
+                  localStorage.setItem("guard_audit", JSON.stringify(hydratedAudit));
+                }
+  
+                if (remoteData?.sessions?.length > 0) {
+                  const hydratedSessions = remoteData.sessions.map((session) => ({
+                    id: session.local_id || session.id,
+                    type: session.type,
+                    plannedDuration: session.planned_duration,
+                    actualDuration: session.actual_duration,
+                    quality: session.quality,
+                    qualityScore: session.quality_score,
+                    creditsEarned: session.credits_earned || 0,
+                    startedAt: session.started_at,
+                    endedAt: session.ended_at,
+                  }));
+  
+                  setGuardSessions(hydratedSessions);
+                  localStorage.setItem("guard_sessions", JSON.stringify(hydratedSessions));
+                }
+              }
+  
+              setActiveTab("profile");
+              navigate("/app");
+            }}
+          />
+  
+          <button
+            type="button"
+            onClick={() => navigate("/app")}
+            className="mt-6 text-sm font-bold text-neutral-500 underline underline-offset-4 transition hover:text-white"
+          >
+            Découvrir Guard sans compte
+          </button>
+        </section>
+      </main>
+    );
   }
 
   if (!auditData) {
