@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
 const sessionTypes = [
-  "Deep Work",
   "Business",
-  "Sport",
+  "Corps",
   "Apprentissage",
   "Admin",
   "Récupération",
+  "Relations"
 ];
 
 const durations = [15, 25, 45, 60, 90];
@@ -33,6 +33,7 @@ export default function GuardOne() {
   const [startedAt, setStartedAt] = useState(null);
   const [endedAt, setEndedAt] = useState(null);
   const [sessions, setSessions] = useState([]);
+  const [completedSession, setCompletedSession] = useState(null);
 
   useEffect(() => {
     const storedSessions = localStorage.getItem("guard_sessions");
@@ -102,7 +103,8 @@ export default function GuardOne() {
     setSessions(updatedSessions);
     localStorage.setItem("guard_sessions", JSON.stringify(updatedSessions));
 
-    resetSession();
+    setCompletedSession(newSession);
+    setStep("completed");
   }
 
   function resetSession() {
@@ -110,6 +112,7 @@ export default function GuardOne() {
     setRemainingSeconds(duration * 60);
     setStartedAt(null);
     setEndedAt(null);
+    setCompletedSession(null);
   }
 
   function formatTime(totalSeconds) {
@@ -175,6 +178,43 @@ export default function GuardOne() {
   const stats = getTodayStats();
   const todaySessions = getTodaySessions();
 
+  function getTotalCreditsAfterSession() {
+    return sessions.reduce((total, session) => {
+      return total + (session.creditsEarned || 0);
+    }, 0);
+  }
+  
+  function getWeeklyMinutesForType(type) {
+    const startOfWeek = new Date();
+    const day = startOfWeek.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+  
+    startOfWeek.setDate(startOfWeek.getDate() + diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+  
+    return sessions.reduce((total, session) => {
+      if (session.type !== type) return total;
+      if (!session.startedAt) return total;
+  
+      const sessionDate = new Date(session.startedAt);
+  
+      if (sessionDate < startOfWeek) return total;
+  
+      return total + (session.actualDuration || 0);
+    }, 0);
+  }
+  
+  function formatMinutes(totalMinutes) {
+    const safeMinutes = Math.max(0, Number(totalMinutes) || 0);
+    const hours = Math.floor(safeMinutes / 60);
+    const minutes = safeMinutes % 60;
+  
+    if (hours === 0) return `${minutes} min`;
+    if (minutes === 0) return `${hours}h`;
+  
+    return `${hours}h${minutes.toString().padStart(2, "0")}`;
+  }
+
   return (
     <main style={styles.page}>
       <div style={styles.container}>
@@ -182,7 +222,7 @@ export default function GuardOne() {
           <section style={styles.section}>
             <div>
               <p style={styles.kicker}>Guard One</p>
-              <h1 style={styles.title}>Déclare une zone protégée.</h1>
+              <h1 style={styles.title}>Investis ton temps.</h1>
               <p style={styles.subtitle}>
                 Pendant cette session, ton temps n’est plus disponible pour le
                 bruit.
@@ -193,7 +233,7 @@ export default function GuardOne() {
 
             <div style={styles.block}>
               <h2 style={styles.blockTitle}>
-                Que veux-tu protéger maintenant ?
+                Dans quoi veux-tu investir maintenant ?
               </h2>
 
               <div style={styles.grid}>
@@ -214,7 +254,7 @@ export default function GuardOne() {
 
             <div style={styles.block}>
               <h2 style={styles.blockTitle}>
-                Combien de temps veux-tu protéger ?
+                Combien de temps veux-tu investirr ?
               </h2>
 
               <div style={styles.durationRow}>
@@ -237,7 +277,7 @@ export default function GuardOne() {
             </div>
 
             <button onClick={startSession} style={styles.primaryButton}>
-              Activer Guard
+              Lancer la session
             </button>
 
             {todaySessions.length > 0 && (
@@ -271,14 +311,14 @@ export default function GuardOne() {
 
         {step === "active" && (
           <section style={styles.activeSection}>
-            <p style={styles.kicker}>Zone protégée active</p>
+            <p style={styles.kicker}>Investissement en cours</p>
 
             <h1 style={styles.activeType}>{sessionType}</h1>
 
             <div style={styles.timer}>{formatTime(remainingSeconds)}</div>
 
             <p style={styles.activeText}>
-              Reste dans le bloc. Une décision protégée vaut mieux qu’une
+              Reste dans le bloc. Un période bien investie vaut mieux qu’une
               journée subie.
             </p>
 
@@ -292,7 +332,7 @@ export default function GuardOne() {
           <section style={styles.reviewSection}>
             <p style={styles.kicker}>Zone terminée</p>
 
-            <h1 style={styles.title}>Tu as protégé ton temps.</h1>
+            <h1 style={styles.title}>Tu as investi ton temps.</h1>
 
             <p style={styles.subtitle}>
               Comment était la qualité de cette zone ?
@@ -308,6 +348,86 @@ export default function GuardOne() {
                   {quality}
                 </button>
               ))}
+            </div>
+          </section>
+        )}
+        {step === "completed" && completedSession && (
+          <section style={styles.completedSection}>
+            <div style={styles.completedCard}>
+              <p style={styles.kicker}>Investissement confirmé</p>
+
+              <h1 style={styles.completedTitle}>Temps investi.</h1>
+
+              <p style={styles.completedSubtitle}>
+                Tu as choisi ce que tu faisais de ce capital.
+              </p>
+
+              <div style={styles.rewardBlock}>
+                <p style={styles.rewardValue}>
+                  +{completedSession.creditsEarned}
+                </p>
+                <p style={styles.rewardLabel}>Guard Credits</p>
+              </div>
+
+              <div style={styles.completedGrid}>
+                <div style={styles.completedMetric}>
+                  <p style={styles.metricLabel}>Session</p>
+                  <p style={styles.metricValue}>
+                    {formatMinutes(completedSession.actualDuration)}
+                  </p>
+                  <p style={styles.metricMeta}>{completedSession.type}</p>
+                </div>
+
+                <div style={styles.completedMetric}>
+                  <p style={styles.metricLabel}>Qualité</p>
+                  <p style={styles.metricValue}>{completedSession.quality}</p>
+                  <p style={styles.metricMeta}>
+                    Score {calculateSessionScore(completedSession)}/100
+                  </p>
+                </div>
+
+                <div style={styles.completedMetric}>
+                  <p style={styles.metricLabel}>Capital Guard</p>
+                  <p style={styles.metricValue}>{getTotalCreditsAfterSession()}</p>
+                  <p style={styles.metricMeta}>crédits disponibles</p>
+                </div>
+
+                <div style={styles.completedMetric}>
+                  <p style={styles.metricLabel}>Territoire semaine</p>
+                  <p style={styles.metricValue}>
+                    {formatMinutes(getWeeklyMinutesForType(completedSession.type))}
+                  </p>
+                  <p style={styles.metricMeta}>{completedSession.type}</p>
+                </div>
+              </div>
+
+              <div style={styles.guardReading}>
+                <p style={styles.guardReadingKicker}>Lecture Guard</p>
+                <p style={styles.guardReadingText}>
+                  Ce temps n’est plus disponible par défaut. Il est devenu un investissement dans{" "}
+                  <strong>{completedSession.type}</strong>.
+                </p>
+              </div>
+
+              <div style={styles.completedActions}>
+                <button
+                  type="button"
+                  onClick={resetSession}
+                  style={styles.primaryButton}
+                >
+                  Investir une autre session
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = "/app";
+                  }}
+                  style={styles.secondaryButton}
+                >
+                  Retour à Aujourd’hui
+                </button>
+              </div>
             </div>
           </section>
         )}
@@ -329,7 +449,7 @@ function TodayStats({ stats }) {
 
         <div>
           <p style={styles.statsValue}>{stats.protectedTime}</p>
-          <p style={styles.statsLabel}>Minutes protégées</p>
+          <p style={styles.statsLabel}>Minutes investies</p>
         </div>
 
         <div>
@@ -591,5 +711,138 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
+  },
+
+  completedSection: {
+    minHeight: "78vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  
+  completedCard: {
+    width: "100%",
+    border: "1px solid rgba(99,102,241,0.28)",
+    background:
+      "linear-gradient(135deg, rgba(10,10,10,1) 0%, rgba(30,27,75,0.72) 52%, rgba(5,5,5,1) 100%)",
+    borderRadius: "36px",
+    padding: "32px",
+    boxShadow: "0 30px 80px rgba(79,70,229,0.22)",
+  },
+  
+  completedTitle: {
+    fontSize: "clamp(48px, 9vw, 92px)",
+    lineHeight: "0.9",
+    margin: 0,
+    letterSpacing: "-0.07em",
+  },
+  
+  completedSubtitle: {
+    margin: "18px 0 0",
+    color: "rgba(255,255,255,0.62)",
+    fontSize: "18px",
+    lineHeight: "1.6",
+  },
+  
+  rewardBlock: {
+    marginTop: "32px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.06)",
+    borderRadius: "28px",
+    padding: "28px",
+  },
+  
+  rewardValue: {
+    margin: 0,
+    fontSize: "clamp(64px, 14vw, 140px)",
+    lineHeight: "0.85",
+    fontWeight: "950",
+    letterSpacing: "-0.08em",
+  },
+  
+  rewardLabel: {
+    margin: "12px 0 0",
+    color: "rgba(255,255,255,0.55)",
+    fontSize: "18px",
+    fontWeight: "800",
+  },
+  
+  completedGrid: {
+    marginTop: "20px",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "12px",
+  },
+  
+  completedMetric: {
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.045)",
+    borderRadius: "24px",
+    padding: "20px",
+  },
+  
+  metricLabel: {
+    margin: 0,
+    color: "rgba(255,255,255,0.38)",
+    fontSize: "11px",
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: "0.18em",
+  },
+  
+  metricValue: {
+    margin: "12px 0 0",
+    fontSize: "28px",
+    fontWeight: "950",
+    letterSpacing: "-0.05em",
+  },
+  
+  metricMeta: {
+    margin: "6px 0 0",
+    color: "rgba(255,255,255,0.48)",
+    fontSize: "13px",
+  },
+  
+  guardReading: {
+    marginTop: "20px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(0,0,0,0.24)",
+    borderRadius: "28px",
+    padding: "22px",
+  },
+  
+  guardReadingKicker: {
+    margin: 0,
+    color: "rgba(129,140,248,1)",
+    fontSize: "11px",
+    fontWeight: "950",
+    textTransform: "uppercase",
+    letterSpacing: "0.2em",
+  },
+  
+  guardReadingText: {
+    margin: "10px 0 0",
+    color: "rgba(255,255,255,0.76)",
+    fontSize: "17px",
+    lineHeight: "1.55",
+  },
+  
+  completedActions: {
+    marginTop: "24px",
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "12px",
+  },
+  
+  secondaryButton: {
+    width: "100%",
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(255,255,255,0.06)",
+    color: "white",
+    borderRadius: "24px",
+    padding: "18px",
+    fontSize: "16px",
+    fontWeight: "800",
+    cursor: "pointer",
   },
 };
