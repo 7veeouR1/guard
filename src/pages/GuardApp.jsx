@@ -4,9 +4,10 @@ import GuardAudit from "../components/GuardAudit";
 import AuthPanel from "../components/AuthPanel";
 import { supabase } from "../lib/supabaseClient";
 import {
-  syncLocalGuardDataToSupabase,
-  loadGuardDataFromSupabase,
-} from "../lib/guardSync";
+        syncLocalGuardDataToSupabase,
+        loadGuardDataFromSupabase,
+      } from "../lib/guardSync";
+import { useNavigate } from "react-router-dom";
 
 const PRESETS = [
   { name: "Scroll réseaux sociaux", minutes: 45 },
@@ -490,6 +491,7 @@ export default function GuardApp() {
   const [showAuthPanel, setShowAuthPanel] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [recentlyAddedPreset, setRecentlyAddedPreset] = useState(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
@@ -830,22 +832,19 @@ return (
                   <ProductBadge />
                 </div>
 
-                <p className="mb-6 text-xl font-black text-white">
-                  Bienvenue,
-                  <span className="font-bold text-white">{username}</span>
-                </p>
+                <div className="mb-8">
+                  <p className="text-xs font-black uppercase tracking-[0.24em] text-neutral-500">
+                    Espace personnel
+                  </p>
 
-                {user && (
-                  <div className="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-left">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
-                      Espace Guard actif
-                    </p>
+                  <h1 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
+                    Bon retour, <span className="text-indigo-300">{username}</span>
+                  </h1>
 
-                    <p className="mt-1 text-sm font-medium text-neutral-300">
-                      Connecté avec <span className="font-bold text-white">{user.email}</span>
-                    </p>
-                  </div>
-                )}
+                  <p className="mt-2 text-sm text-neutral-400 md:text-base">
+                    Prêt à investir ton temps ?
+                  </p>
+              </div>
             </div>
 
     {/* ONGLET PROFIL */}
@@ -931,10 +930,10 @@ return (
     {/* CAPITAL GUARD + SAUVEGARDE */}
     <div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
       {/* BLOC CAPITAL GUARD */}
-      <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-br from-neutral-950 via-emerald-950/30 to-neutral-950 p-6 shadow-2xl shadow-emerald-950/20 md:p-8">
+      <div className="rounded-[2rem] border border-blue-500/20 bg-gradient-to-br from-neutral-950 via-blue-950/30 to-neutral-950 p-6 shadow-2xl shadow-blue-950/20 md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-300">
+            <p className="text-xs font-black uppercase tracking-[0.26em] text-blue-300">
               Capital Guard
             </p>
 
@@ -952,7 +951,7 @@ return (
               Aujourd’hui
             </p>
 
-            <p className="mt-2 text-3xl font-black text-emerald-300">
+            <p className="mt-2 text-3xl font-black text-blue-300">
               +{todayGuardCredits}
             </p>
 
@@ -977,7 +976,7 @@ return (
               <p className="text-sm font-bold text-neutral-500">
                 Objectif
               </p>
-              <p className="text-2xl font-black text-emerald-300">
+              <p className="text-2xl font-black text-blue-300">
                 {rewardTargetCredits}
               </p>
             </div>
@@ -1030,8 +1029,11 @@ return (
             </>
           ) : (
             <AuthPanel
-  onAuthSuccess={async (_session, authenticatedUser) => {
-    const currentUser = authenticatedUser || user;
+  onAuthSuccess={async (authSession, authenticatedUser) => {
+    setSession(authSession);
+    setUser(authenticatedUser);
+
+    const currentUser = authenticatedUser;
 
     if (currentUser?.id) {
       await syncLocalGuardDataToSupabase(currentUser.id);
@@ -1047,6 +1049,23 @@ return (
         setAuditData(hydratedAudit);
         localStorage.setItem("guard_audit", JSON.stringify(hydratedAudit));
       }
+
+      if (remoteData?.sessions?.length > 0) {
+        const hydratedSessions = remoteData.sessions.map((session) => ({
+          id: session.local_id || session.id,
+          type: session.type,
+          plannedDuration: session.planned_duration,
+          actualDuration: session.actual_duration,
+          quality: session.quality,
+          qualityScore: session.quality_score,
+          creditsEarned: session.credits_earned || 0,
+          startedAt: session.started_at,
+          endedAt: session.ended_at,
+        }));
+
+        setGuardSessions(hydratedSessions);
+        localStorage.setItem("guard_sessions", JSON.stringify(hydratedSessions));
+      }
     }
 
     setShowAuthPanel(false);
@@ -1057,19 +1076,35 @@ return (
       )}
 
       {user && (
-        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-          <p className="text-sm text-neutral-400">
-            Connecté avec <span className="font-bold text-white">{user.email}</span>
+        <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+          <p className="w-full text-center text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
+            Connecté
           </p>
-
+          </div>
+    
           <button
-            type="button"
-            onClick={() => supabase.auth.signOut()}
-            className="rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-          >
-            Déconnexion
-          </button>
+  type="button"
+  onClick={() => {
+    console.log("Déconnexion cliquée");
+
+    supabase.auth.signOut().catch((error) => {
+      console.error("Erreur déconnexion Supabase:", error);
+    });
+
+    setSession(null);
+    setUser(null);
+    setShowAuthPanel(false);
+
+    window.location.replace("/");
+  }}
+  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+>
+  Déconnexion
+</button>
         </div>
+      </div>
       )}
     </div>
     </>
