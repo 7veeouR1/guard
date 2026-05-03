@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-export default function AuthPanel({ onAuthSuccess }) {
-  const [mode, setMode] = useState("signup");
+export default function AuthPanel({ onAuthSuccess, initialMode = "signup" }) {
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
