@@ -52,17 +52,14 @@ function IconBadge({ children, className = "" }) {
   );
 }
 
-function ProductBadge() {
+function GuardLogo() {
   return (
-    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-s font-semibold uppercase tracking-[0.18em] text-neutral-300 shadow-lg shadow-black/20 backdrop-blur">
-     <span className="flex h-10 w-10 items-center justify-center">
-  <span className="text-4xl font-black leading-none tracking-[-0.12em] text-white">
-    G
-  </span>
-</span>
-      <span>GUARD</span>
-      <span className="h-1 w-1 rounded-full bg-neutral-600" />
-      <span className="text-neutral-500">Beta</span>
+    <div className="inline-flex items-center justify-center">
+      <img
+        src="/guard_logo.png"
+        alt="Guard"
+        className="h-28 w-auto object-contain md:h-20"
+      />
     </div>
   );
 }
@@ -697,7 +694,7 @@ export default function GuardApp() {
         totalMinutes,
       };
     });
-  
+
     const totalInvestedMinutes = investmentsByTerritory.reduce((total, item) => {
       return total + item.totalMinutes;
     }, 0);
@@ -722,6 +719,61 @@ export default function GuardApp() {
       totalInvestedMinutes,
       dominantTerritory,
       weakestTerritory,
+    };
+  }, [guardSessions]);
+
+  const weeklyHistoryStats = useMemo(() => {
+    const startOfWeek = getStartOfWeek();
+  
+    const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  
+    const history = days.map((label, index) => {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + index);
+  
+      const totalMinutes = guardSessions.reduce((total, session) => {
+        if (!session.startedAt) return total;
+  
+        const sessionDate = new Date(session.startedAt);
+  
+        const isSameDay =
+          sessionDate.getFullYear() === date.getFullYear() &&
+          sessionDate.getMonth() === date.getMonth() &&
+          sessionDate.getDate() === date.getDate();
+  
+        if (!isSameDay) return total;
+  
+        return total + normalizeMinutes(session.actualDuration);
+      }, 0);
+  
+      return {
+        label,
+        date,
+        totalMinutes,
+      };
+    });
+  
+    const maxMinutes = Math.max(
+      1,
+      ...history.map((day) => day.totalMinutes)
+    );
+  
+    const totalWeekMinutes = history.reduce((total, day) => {
+      return total + day.totalMinutes;
+    }, 0);
+  
+    const activeDays = history.filter((day) => day.totalMinutes > 0).length;
+  
+    const bestDay = history.reduce((best, day) => {
+      return day.totalMinutes > best.totalMinutes ? day : best;
+    }, history[0]);
+  
+    return {
+      history,
+      maxMinutes,
+      totalWeekMinutes,
+      activeDays,
+      bestDay,
     };
   }, [guardSessions]);
 
@@ -922,7 +974,7 @@ function addHabit(name, minutes) {
   if (!user && (authModeFromUrl === "signup" || authModeFromUrl === "signin")) {
     return (
       <main className="min-h-screen bg-neutral-950 text-white">
-        <section className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-12">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 pb-32 md:py-16 md:pb-36">
           <div className="mb-8 text-center">
             <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
               Espace Guard
@@ -1036,13 +1088,13 @@ function addHabit(name, minutes) {
  
 return (
 <main className="min-h-screen bg-neutral-950 text-white">
-  <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:py-16">
+<section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 pb-26 md:py-16 md:pb-30">
         
 
     {/* HERO APP DÉBUT*/}
             <div className="text-center md:text-left">
                 <div className="flex justify-center md:justify-start">
-                  <ProductBadge />
+                  <GuardLogo />
                 </div>
 
                 <div className="mb-8">
@@ -1215,6 +1267,103 @@ return (
           ? `${weeklyInvestmentStats.weakestTerritory} est ton territoire le moins alimenté cette semaine.`
           : "Ton temps investi révèle ce que tu construis vraiment."}
     </p>
+  </div>
+</div>
+
+{/* HISTORIQUE DE LA SEMAINE */}
+<div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-neutral-950 via-blue-950/20 to-neutral-950 p-5 shadow-2xl shadow-blue-950/20 md:p-7">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-300">
+        Historique
+      </p>
+
+      <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
+        {formatMinutesAsHoursMinutes(weeklyHistoryStats.totalWeekMinutes)}
+      </h2>
+
+      <p className="mt-1 text-sm text-neutral-400">
+        investies cette semaine
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
+        Jours actifs
+      </p>
+
+      <p className="mt-1 text-xl font-black text-white">
+        {weeklyHistoryStats.activeDays}/7
+      </p>
+    </div>
+  </div>
+
+  <div className="mt-7 flex h-40 items-end justify-between gap-2 rounded-3xl border border-white/10 bg-black/20 px-4 py-4">
+    {weeklyHistoryStats.history.map((day) => {
+      const heightPercentage =
+        day.totalMinutes === 0
+          ? 4
+          : Math.max(
+              12,
+              Math.round((day.totalMinutes / weeklyHistoryStats.maxMinutes) * 100)
+            );
+
+      const isToday =
+        new Date().toDateString() === day.date.toDateString();
+
+      return (
+        <div key={day.label} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
+          <div className="flex h-full w-full items-end justify-center">
+            <div
+              className={`w-full max-w-[26px] rounded-full transition-all ${
+                day.totalMinutes > 0
+                  ? "bg-gradient-to-t from-blue-400 to-indigo-300"
+                  : "bg-white/10"
+              } ${isToday ? "ring-2 ring-white/30" : ""}`}
+              style={{ height: `${heightPercentage}%` }}
+            />
+          </div>
+
+          <p className={`text-[11px] font-black ${isToday ? "text-white" : "text-neutral-500"}`}>
+            {day.label}
+          </p>
+        </div>
+      );
+    })}
+  </div>
+
+  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+        Meilleur jour
+      </p>
+
+      <p className="mt-2 text-lg font-black text-white">
+        {weeklyHistoryStats.bestDay?.totalMinutes > 0
+          ? weeklyHistoryStats.bestDay.label
+          : "Aucun"}
+      </p>
+
+      <p className="mt-1 text-sm text-neutral-400">
+        {weeklyHistoryStats.bestDay?.totalMinutes > 0
+          ? formatMinutesAsHoursMinutes(weeklyHistoryStats.bestDay.totalMinutes)
+          : "Aucune session investie"}
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+        Lecture Guard
+      </p>
+
+      <p className="mt-2 text-sm font-bold leading-6 text-neutral-300">
+        {weeklyHistoryStats.activeDays === 0
+          ? "Ta semaine n’a pas encore commencé dans Guard."
+          : weeklyHistoryStats.activeDays >= 5
+            ? "Belle régularité. Ton temps investi commence à devenir un système."
+            : "Quelques sessions suffisent à changer la trajectoire d’une semaine."}
+      </p>
+    </div>
   </div>
 </div>
 
@@ -1985,97 +2134,140 @@ return (
                 </Card>
                 
                 {/* PÉRIODES */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  {PERIODS.map((period) => {
-                    const periodMinutes = totalMinutesPerDay * period.days;
+                  <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0">
+                    {PERIODS.map((period) => {
+                      const periodMinutes = totalMinutesPerDay * period.days;
 
-                    return (
-                      <div
-                        key={period.label}
-                        className="rounded-3xl border border-white/10 bg-white p-5 text-neutral-950"
-                      >
-                        <p className="inline-flex rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">{period.label}</p>
-                        <p className="mt-3 text-3xl font-black">{formatDuration(periodMinutes)}</p>
-                        <p className="mt-2 text-sm text-neutral-500">{formatImpactLine(periodMinutes)}</p>
-                      </div>
-                    );
-                  })}
-                </div>
+                      return (
+                        <div
+                          key={period.label}
+                          className="min-w-[220px] rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-5 text-white shadow-xl shadow-indigo-950/20 md:min-w-0"
+                        >
+                          <p className="inline-flex rounded-full border border-indigo-400/20 bg-indigo-400/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-indigo-200">
+                            {period.label}
+                          </p>
+
+                          <p className="mt-3 text-3xl font-black text-white">
+                            {formatDuration(periodMinutes)}
+                          </p>
+
+                          <p className="mt-2 text-sm leading-5 text-neutral-400">
+                            {formatImpactLine(periodMinutes)}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
 
                 {/* CONCLUSION */}
-                <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
-                  <CardContent className="p-6">
-                    <h2 className="text-xl font-bold">Tu sais quoi ?</h2>
-                    <p className="mt-3 text-2xl font-black leading-snug md:text-3xl">
-                      En 10 ans, ces habitudes peuvent te coûter {formatDuration(tenYearMinutes)}.
-                    </p>
-                    <p className="mt-3 text-neutral-400">
-                      Ce n’est pas une impression. Ce sont des semaines, parfois des mois, qui disparaissent dans des habitudes que tu n’as même pas forcément choisies.
-                    </p>
-                    <div className="mt-5 flex flex-wrap gap-3">
-                      <button
-                        onClick={copyResultToClipboard}
-                        className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-neutral-950 transition hover:bg-neutral-200"
-                      >
-                        Copier mon résultat
-                      </button>
+                <Card className="border-rose-500/20 bg-gradient-to-br from-neutral-950 via-rose-950/25 to-violet-950/30 text-white shadow-2xl shadow-rose-950/20 backdrop-blur">
+  <CardContent className="p-6">
+    <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-300">
+      Projection
+    </p>
 
-                      <button
-                        type="button"
-                        onClick={() => setShowShareModal(true)}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-                      >
-                        Partager
-                      </button>
-                    </div>
-                  </CardContent>
-                </Card>
+    <div className="mt-5 rounded-3xl border border-white/10 bg-black/25 p-5">
+      <p className="text-sm font-bold text-neutral-400">
+        Sur 10 ans, cette consommation représente
+      </p>
+
+      <p className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+        {formatDuration(tenYearMinutes)}
+      </p>
+
+      <p className="mt-3 text-sm leading-6 text-neutral-400">
+        Ce temps n’est pas forcément perdu. Mais s’il n’est jamais choisi, il finit par devenir ton mode par défaut.
+      </p>
+    </div>
+
+    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+          Lecture Guard
+        </p>
+
+        <p className="mt-2 text-sm font-bold leading-6 text-neutral-300">
+          Ce que tu consommes sans décider finit par prendre la place de ce que tu pourrais investir.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+          Prochaine action
+        </p>
+
+        <p className="mt-2 text-sm font-bold leading-6 text-neutral-300">
+          Réduis une consommation ou lance une session investie pour reprendre la main.
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-5 flex flex-wrap gap-3">
+      <button
+        onClick={copyResultToClipboard}
+        className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+      >
+        Copier mon résultat
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setShowShareModal(true)}
+        className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-5 py-3 text-sm font-black text-rose-100 transition hover:bg-rose-400/20 hover:text-white"
+      >
+        Partager
+      </button>
+    </div>
+  </CardContent>
+</Card>
               </div>
         </div>
       </>
     )}
   </section>
 
-  {/* NAVIGATION BASSE */}
-  <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-950/90 px-4 py-3 backdrop-blur">
-      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab("profile")}
-          className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
-            activeTab === "profile"
-              ? "bg-white text-neutral-950"
-              : "text-neutral-400 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          Profil
-        </button>
+{/* NAVIGATION BASSE PREMIUM */}
+<nav className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-3">
+  <div className="mx-auto max-w-md rounded-[2rem] border border-white/10 bg-neutral-950/80 p-2 shadow-2xl shadow-black/60 backdrop-blur-xl">
+    <div className="grid grid-cols-3 gap-2">
+      <button
+        type="button"
+        onClick={() => setActiveTab("profile")}
+        className={`rounded-[1.4rem] px-3 py-3 text-xs font-black uppercase tracking-[0.12em] transition ${
+          activeTab === "profile"
+            ? "bg-white text-neutral-950 shadow-lg shadow-white/10"
+            : "text-neutral-500 hover:bg-white/5 hover:text-white"
+        }`}
+      >
+        Profil
+      </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("today")}
-          className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
-            activeTab === "today"
-              ? "bg-white text-neutral-950"
-              : "text-neutral-400 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          Aujourd’hui
-        </button>
+      <button
+        type="button"
+        onClick={() => setActiveTab("today")}
+        className={`rounded-[1.4rem] px-3 py-3 text-xs font-black uppercase tracking-[0.12em] transition ${
+          activeTab === "today"
+            ? "bg-gradient-to-r from-indigo-300 to-violet-300 text-neutral-950 shadow-lg shadow-indigo-950/40"
+            : "text-neutral-500 hover:bg-white/5 hover:text-white"
+        }`}
+      >
+        Aujourd’hui
+      </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("leaks")}
-          className={`rounded-2xl px-3 py-3 text-sm font-black transition ${
-            activeTab === "leaks"
-              ? "bg-white text-neutral-950"
-              : "text-neutral-400 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          Consommation
-        </button>
-      </div>
-    </nav>
+      <button
+        type="button"
+        onClick={() => setActiveTab("leaks")}
+        className={`rounded-[1.4rem] px-3 py-3 text-xs font-black uppercase tracking-[0.12em] transition ${
+          activeTab === "leaks"
+            ? "bg-gradient-to-r from-rose-300 to-violet-300 text-neutral-950 shadow-lg shadow-rose-950/40"
+            : "text-neutral-500 hover:bg-white/5 hover:text-white"
+        }`}
+      >
+        Conso
+      </button>
+    </div>
+  </div>
+</nav>
 
     {/* MODAL PARTAGE */}
     {showShareModal && (
