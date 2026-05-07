@@ -510,11 +510,57 @@ export default function GuardApp() {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [showAuthPanel, setShowAuthPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("today");
   const [recentlyAddedPreset, setRecentlyAddedPreset] = useState(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const authModeFromUrl = searchParams.get("auth");
+  const [dailyCheckin, setDailyCheckin] = useState(null);
+  const [dailySleepHours, setDailySleepHours] = useState(8);
+  const [dailyWorkHours, setDailyWorkHours] = useState(8);
+  const [isEditingDailyWorkHours, setIsEditingDailyWorkHours] = useState(false);
+
+  function getTodayKey() {
+    return new Date().toISOString().split("T")[0];
+  }
+  
+  function getDailyCheckinStorageKey() {
+    return `guard_daily_checkin_${getTodayKey()}`;
+  }
+  
+  function saveDailyCheckin() {
+    const safeSleepHours = clampNumber(dailySleepHours, 0, 24);
+    const safeWorkHours = clampNumber(dailyWorkHours, 0, 24 - safeSleepHours);
+  
+    const checkin = {
+      date: getTodayKey(),
+      sleepHours: safeSleepHours,
+      workHours: safeWorkHours,
+      createdAt: new Date().toISOString(),
+    };
+  
+    localStorage.setItem(getDailyCheckinStorageKey(), JSON.stringify(checkin));
+  
+    setDailySleepHours(safeSleepHours);
+    setDailyWorkHours(safeWorkHours);
+    setDailyCheckin(checkin);
+  }
+
+  useEffect(() => {
+    const storedDailyCheckin = localStorage.getItem(getDailyCheckinStorageKey());
+  
+    if (storedDailyCheckin) {
+      try {
+        const parsedCheckin = JSON.parse(storedDailyCheckin);
+  
+        setDailyCheckin(parsedCheckin);
+        setDailySleepHours(parsedCheckin.sleepHours ?? 8);
+        setDailyWorkHours(parsedCheckin.workHours ?? 8);
+      } catch (error) {
+        console.error("Impossible de lire le check-in du jour", error);
+      }
+    }
+  }, []);
   
   useEffect(() => {
     setGuardSessions(getStoredGuardSessions());
@@ -683,8 +729,8 @@ export default function GuardApp() {
   const tenYearMinutes = totalMinutesPerDay * 3650;
   const canAddCustomHabit = customName.trim().length > 0 && normalizeMinutes(customMinutes) > 0;
 
-  const sleepHours = dayMode === "standard" ? STANDARD_SLEEP_HOURS : customSleepHours;
-  const workHours = dayMode === "standard" ? STANDARD_WORK_HOURS : customWorkHours;
+  const sleepHours = dailyCheckin?.sleepHours ?? dailySleepHours;
+  const workHours = dailyCheckin?.workHours ?? dailyWorkHours; 
   const dayBreakdown = buildDayBreakdown({
     sleepHours,
     workHours,
@@ -837,6 +883,24 @@ function addHabit(name, minutes) {
     return encodeURIComponent(getShareUrl());
   }
   
+  function clampNumber(value, min, max) {
+    const number = Number(value);
+  
+    if (Number.isNaN(number)) return min;
+  
+    return Math.min(max, Math.max(min, number));
+  }
+  
+  function updateDailySleepHours(nextValue) {
+    const maxSleep = Math.max(0, 24 - Number(dailyWorkHours || 0));
+    setDailySleepHours(clampNumber(nextValue, 0, maxSleep));
+  }
+  
+  function updateDailyWorkHours(nextValue) {
+    const maxWork = Math.max(0, 24 - Number(dailySleepHours || 0));
+    setDailyWorkHours(clampNumber(nextValue, 0, maxWork));
+  }
+
   async function openNativeShare() {
     const shareData = {
       title: "Time Leak Calculator",
@@ -1002,65 +1066,66 @@ return (
         {/* TON PROFIL GUARD + IMAGE DYNAMIQUE*/}    
         {auditData?.profile && (
           <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            {/* Bloc profil */}
-            <div className="min-h-[520px] rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-8 shadow-2xl shadow-indigo-950/30 md:p-10">
-              <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
-                Ton profil Guard
-              </p>
+            {/* Bloc profil compact */}
+<div className="rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/50 to-neutral-950 p-5 shadow-2xl shadow-indigo-950/30 md:p-7">
+  <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-300">
+    Ton profil Guard
+  </p>
 
-                <h2 className="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">
-                  {auditData.profile.profileName}
-                </h2>
+  <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
+    {auditData.profile.profileName}
+  </h2>
 
-              <p className="mt-6 max-w-3xl text-lg leading-8 text-neutral-300 md:text-xl">
-                {auditData.profile.profileDescription}
-              </p>
+  <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-300 md:text-base">
+    {auditData.profile.profileDescription}
+  </p>
 
-              <div className="mt-10 grid gap-4 md:grid-cols-2">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                    Priorité
-                  </p>
-                  <p className="mt-3 text-3xl font-black text-white">
-                    {auditData.profile.priorityLabel}
-                  </p>
-              </div>
+  <div className="mt-5 grid gap-3 md:grid-cols-2">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
+        Priorité
+      </p>
 
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                  Objectif recommandé
-                </p>
-                <p className="mt-3 text-3xl font-black text-indigo-300">
-                  {auditData.profile.recommendedMinutes} min / jour
-                </p>
-              </div>
-            </div>
-            
+      <p className="mt-2 text-xl font-black text-white md:text-2xl">
+        {auditData.profile.priorityLabel}
+      </p>
+    </div>
 
-              <div className="mt-10 flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView("guard-one")}
-                    className="rounded-2xl bg-white px-6 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-                  >
-                    Investir mon temps
-                  </button>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
+        Objectif recommandé
+      </p>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.removeItem("guard_audit");
-                      setAuditData(null);
-                    }}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-                  >
-                    Refaire l’audit
-                  </button>
-              </div>
-            </div>
-            
-            {/* BLOC IMAGE DYNAMIQUE */}
-            <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30">
+      <p className="mt-2 text-xl font-black text-indigo-300 md:text-2xl">
+        {auditData.profile.recommendedMinutes} min / jour
+      </p>
+    </div>
+  </div>
+
+  <div className="mt-5 flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      onClick={() => setCurrentView("guard-one")}
+      className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+    >
+      Investir mon temps
+    </button>
+
+    <button
+      type="button"
+      onClick={() => {
+        localStorage.removeItem("guard_audit");
+        setAuditData(null);
+      }}
+      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-neutral-300 transition hover:bg-white/10 hover:text-white"
+    >
+      Refaire l’audit
+    </button>
+  </div>
+</div> 
+
+{/* BLOC IMAGE DYNAMIQUE */}
+<div className="relative h-[320px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl shadow-indigo-950/30 md:h-[380px]">
               <img
                 src={activeProfileConfig.image}
                 alt={activeProfileConfig.alt}
@@ -1069,180 +1134,167 @@ return (
 
               <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/45 via-transparent to-transparent" />
 
-              <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
-                  {activeProfileConfig.badge}
+                <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur">
+                    {activeProfileConfig.badge}
+                </div>
               </div>
-            </div>
-          </div>
+  </div>
         )} 
 
-    {/* INVESTISSEMENTS DE LA SEMAINE */}
-          <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20 md:p-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
-                  Investissements de la semaine
-                </p>
+    {/* INVESTISSEMENTS DE LA SEMAINE - COMPACT */}
+<div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-5 shadow-2xl shadow-indigo-950/20 md:p-7">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.24em] text-indigo-300">
+        Investissements
+      </p>
 
-                <h2 className="mt-4 text-4xl font-black tracking-tight text-white md:text-6xl">
-                  {formatMinutesAsHoursMinutes(
-                    weeklyInvestmentStats.totalInvestedMinutes
-                  )}
-                </h2>
+      <h2 className="mt-3 text-4xl font-black tracking-tight text-white md:text-6xl">
+        {formatMinutesAsHoursMinutes(weeklyInvestmentStats.totalInvestedMinutes)}
+      </h2>
 
-                <p className="mt-2 text-sm leading-6 text-neutral-400 md:text-base">
-                  Temps investi depuis lundi dans tes territoires.
-                </p>
-              </div>
+      <p className="mt-1 text-sm text-neutral-400">
+        investies cette semaine
+      </p>
+    </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[240px]">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                  Territoire dominant
-                </p>
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
+        Dominant
+      </p>
 
-                <p className="mt-2 text-2xl font-black text-white">
-                  {weeklyInvestmentStats.dominantTerritory || "Aucun"}
-                </p>
+      <p className="mt-1 text-sm font-black text-white md:text-base">
+        {weeklyInvestmentStats.dominantTerritory || "Aucun"}
+      </p>
+    </div>
+  </div>
 
-                <p className="mt-2 text-sm text-neutral-400">
-                  {weeklyInvestmentStats.dominantTerritory
-                    ? "C’est là que ton temps construit le plus cette semaine."
-                    : "Lance une session investie pour commencer."}
-                </p>
-              </div>
-            </div>
+  <div className="mt-5 grid gap-2">
+    {weeklyInvestmentStats.investmentsByTerritory.map((item) => {
+      const percentage =
+        weeklyInvestmentStats.totalInvestedMinutes === 0
+          ? 0
+          : Math.round(
+              (item.totalMinutes / weeklyInvestmentStats.totalInvestedMinutes) * 100
+            );
 
-            <div className="mt-8 grid gap-3">
-              {weeklyInvestmentStats.investmentsByTerritory.map((item) => {
-                const percentage =
-                  weeklyInvestmentStats.totalInvestedMinutes === 0
-                    ? 0
-                    : Math.round(
-                        (item.totalMinutes /
-                          weeklyInvestmentStats.totalInvestedMinutes) *
-                          100
-                      );
+      return (
+        <div key={item.territory} className="grid gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold text-white">
+              {item.territory}
+            </p>
 
-                return (
-                  <div
-                    key={item.territory}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-black text-white">{item.territory}</p>
-                        <p className="mt-1 text-sm text-neutral-500">
-                          {percentage}% de ton temps investi
-                        </p>
-                      </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-neutral-500">
+                {percentage}%
+              </span>
 
-                      <p className="text-lg font-black text-indigo-300">
-                        {formatMinutesAsHoursMinutes(item.totalMinutes)}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                Lecture Guard
-              </p>
-
-              <p className="mt-3 text-lg font-black leading-7 text-white">
-                {weeklyInvestmentStats.totalInvestedMinutes === 0
-                  ? "Cette semaine n’a pas encore commencé dans Guard."
-                  : `Ton temps investi révèle ce que tu construis vraiment. ${
-                      weeklyInvestmentStats.weakestTerritory
-                        ? `${weeklyInvestmentStats.weakestTerritory} est ton territoire le moins alimenté cette semaine.`
-                        : ""
-                    }`}
-              </p>
+              <span className="min-w-[52px] text-right text-sm font-black text-indigo-300">
+                {formatMinutesAsHoursMinutes(item.totalMinutes)}
+              </span>
             </div>
           </div>
+
+          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-all"
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+    <p className="text-sm font-bold leading-6 text-neutral-300">
+      {weeklyInvestmentStats.totalInvestedMinutes === 0
+        ? "Lance une session investie pour commencer à construire ta semaine."
+        : weeklyInvestmentStats.weakestTerritory
+          ? `${weeklyInvestmentStats.weakestTerritory} est ton territoire le moins alimenté cette semaine.`
+          : "Ton temps investi révèle ce que tu construis vraiment."}
+    </p>
+  </div>
+</div>
 
     {/* CAPITAL GUARD + SAUVEGARDE */}
     <div className="grid w-full gap-6 px-5 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 xl:px-12">
-      {/* BLOC CAPITAL GUARD */}
-      <div className="rounded-[2rem] border border-blue-500/20 bg-gradient-to-br from-neutral-950 via-blue-950/30 to-neutral-950 p-6 shadow-2xl shadow-blue-950/20 md:p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.26em] text-blue-300">
-              Capital Guard
-            </p>
+      {/* BLOC CAPITAL GUARD COMPACT */}
+<div className="rounded-[2rem] border border-blue-500/20 bg-gradient-to-br from-neutral-950 via-blue-950/30 to-neutral-950 p-5 shadow-2xl shadow-blue-950/20 md:p-7">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-300">
+        Capital Guard
+      </p>
 
-            <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-7xl">
-              {totalGuardCredits}
-            </h2>
+      <h2 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+        {totalGuardCredits}
+      </h2>
 
-            <p className="mt-2 text-xl font-black text-neutral-400">
-              Guard Credits disponibles
-            </p>
-          </div>
+      <p className="mt-1 text-sm font-bold text-neutral-400">
+        Guard Credits disponibles
+      </p>
+    </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:min-w-[220px]">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-              Aujourd’hui
-            </p>
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
+        Aujourd’hui
+      </p>
 
-            <p className="mt-2 text-3xl font-black text-blue-300">
-              +{todayGuardCredits}
-            </p>
+      <p className="mt-1 text-2xl font-black text-blue-300">
+        +{todayGuardCredits}
+      </p>
 
-            <p className="mt-1 text-sm font-medium text-neutral-400">
-              crédits gagnés
-            </p>
-          </div>
-        </div>
+      <p className="mt-1 text-xs font-medium text-neutral-500">
+        crédits
+      </p>
+    </div>
+  </div>
 
-        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-bold text-neutral-400">
-                Prochaine récompense
-              </p>
-              <p className="mt-1 text-2xl font-black text-white">
-                Accès prioritaire aux Guard Rewards
-              </p>
-            </div>
+  <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="flex items-end justify-between gap-4">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-neutral-500">
+          Prochaine récompense
+        </p>
 
-            <div className="text-right">
-              <p className="text-sm font-bold text-neutral-500">
-                Objectif
-              </p>
-              <p className="text-2xl font-black text-blue-300">
-                {rewardTargetCredits}
-              </p>
-            </div>
-          </div>
-
-        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-indigo-400 transition-all"
-                style={{ width: `${rewardProgress}%` }}/>
-        </div>
-
-              <p className="mt-3 text-sm text-neutral-400">
-                Encore{" "}
-                <span className="font-black text-white">
-                  {remainingCreditsToReward}
-                </span>{" "}
-                crédits pour débloquer la prochaine récompense.
-              </p>
-            </div>
-
-            <p className="mt-5 text-sm leading-6 text-neutral-500">
-              Chaque session investie alimente ton Capital Guard. Les premières
-              récompenses partenaires arrivent bientôt.
-            </p>
+        <p className="mt-1 text-lg font-black text-white">
+          Accès Guard Rewards
+        </p>
       </div>
+
+      <div className="text-right">
+        <p className="text-xs font-bold text-neutral-500">
+          Objectif
+        </p>
+
+        <p className="text-xl font-black text-blue-300">
+          {rewardTargetCredits}
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 transition-all"
+        style={{ width: `${rewardProgress}%` }}
+      />
+    </div>
+
+    <p className="mt-3 text-xs leading-5 text-neutral-400">
+      Encore{" "}
+      <span className="font-black text-white">
+        {remainingCreditsToReward}
+      </span>{" "}
+      crédits pour débloquer la prochaine récompense.
+    </p>
+  </div>
+
+  <p className="mt-4 text-xs leading-5 text-neutral-500">
+    Chaque session investie alimente ton Capital Guard.
+  </p>
+</div>
 
       {/* BLOC SAUVEGARDE / AUTH */}
       {!user && (
@@ -1355,6 +1407,123 @@ return (
 
     {/* ONGLET AUJOURD’HUI */}
     {activeTab === "today" && (
+        <>
+          {!dailyCheckin ? (
+            <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/40 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20 md:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.26em] text-indigo-300">
+                Check-in du jour
+              </p>
+      
+              <h2 className="mt-4 text-4xl font-black tracking-tight text-white md:text-6xl">
+                Calcule ton capital du jour.
+              </h2>
+      
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-400 md:text-base">
+                Chaque journée commence avec le même capital brut : 24 heures. Guard
+                retire le sommeil et les heures déjà engagées pour révéler ce qu’il
+                te reste à décider.
+              </p>
+      
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <label
+                    htmlFor="daily-sleep"
+                    className="text-sm font-black text-white"
+                  >
+                    Combien d’heures as-tu dormi cette nuit ?
+                  </label>
+      
+                  <div className="mt-4 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDailySleepHours((value) => clampNumber(Number(value) - 0.5, 0, 24 - Number(dailyWorkHours || 0)))
+                      }
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl font-black text-white transition hover:bg-white/10"
+                    >
+                      −
+                    </button>
+      
+                    <input
+                      id="daily-sleep"
+                      type="number"
+                      min="0"
+                      max="24"
+                      step="0.5"
+                      value={dailySleepHours}
+                      onChange={(event) => updateDailySleepHours(event.target.value)}
+                      className="h-11 w-full rounded-2xl border border-white/10 bg-neutral-950 px-4 text-center text-xl font-black text-white outline-none focus:border-indigo-400/60"
+                    />
+      
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDailySleepHours((value) => clampNumber(Number(value) + 0.5, 0, 24 - Number(dailyWorkHours || 0)))
+                      }
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl font-black text-white transition hover:bg-white/10"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+      
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <label
+                    htmlFor="daily-work"
+                    className="text-sm font-black text-white"
+                  >
+                    Combien d’heures sont déjà engagées aujourd’hui ?
+                  </label>
+      
+                  <p className="mt-2 text-xs leading-5 text-neutral-500">
+                    Travail, obligations, rendez-vous, trajets.
+                  </p>
+      
+                  <div className="mt-4 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDailyWorkHours((value) => clampNumber(Number(value) - 0.5, 0, 24 - Number(dailySleepHours || 0)))
+                      }
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl font-black text-white transition hover:bg-white/10"
+                    >
+                      −
+                    </button>
+      
+                    <input
+                      id="daily-work"
+                      type="number"
+                      min="0"
+                      max="24"
+                      step="0.5"
+                      value={dailyWorkHours}
+                      onChange={(event) => updateDailyWorkHours(event.target.value)}
+                      className="h-11 w-full rounded-2xl border border-white/10 bg-neutral-950 px-4 text-center text-xl font-black text-white outline-none focus:border-indigo-400/60"
+                    />
+      
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDailyWorkHours((value) => clampNumber(Number(value) + 0.5, 0, 24 - Number(dailySleepHours || 0)))
+                      }
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl font-black text-white transition hover:bg-white/10"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+      
+              <button
+                type="button"
+                onClick={saveDailyCheckin}
+                className="mt-6 w-full rounded-2xl bg-white px-5 py-4 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
+              >
+                Calculer mon capital du jour
+              </button>
+            </div>
+          ) : (
+            <>
       <>
         {/* BLOC AUJOURD’HUI */}
         <div className="mt-8 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/30 to-neutral-950 p-6 shadow-2xl shadow-indigo-950/20">
@@ -1460,81 +1629,38 @@ return (
                   </p>
                 </div>
               </div>
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("guard-one")}
-                  className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-neutral-200"
-                >
-                  Comment vas-tu gérer ce temps ?
-                </button>
-
-                <p className="text-sm font-medium text-neutral-500">
-                  Ce que tu n'investis pas finit souvent par être perdu.
-                </p>
-              </div>
         </div>
 
-        {/* NEXT GUARD MOVE */} 
-        <Card className="border-indigo-500/20 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 text-neutral-950 shadow-2xl shadow-indigo-950/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-700">
-                  Next Guard Move
-              </p>
+        {/* NEXT GUARD MOVE - MINI WIDGET */}
+<button
+  type="button"
+  onClick={() => setCurrentView("guard-one")}
+  className="group flex w-full items-center justify-between gap-4 rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 p-4 text-left text-neutral-950 shadow-xl shadow-indigo-950/10 transition hover:scale-[1.01] hover:shadow-indigo-950/20"
+>
+  <div>
+    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-700">
+      Next Guard Move
+    </p>
 
-              <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
-                  +{potentialGain ?? "—"} pts
-              </span>
-            </div>
+    <p className="mt-2 text-2xl font-black">
+      Investir du temps
+    </p>
 
-            <div className="mt-8">
-              <p className="text-6xl font-black leading-none tracking-tight">
-                  {recommendedGuardMinutes}
-                <span className="ml-2 text-2xl">min</span>
-              </p>
+    <p className="mt-1 text-xs font-bold text-neutral-500">
+      Score potentiel : {potentialScore === null ? "—" : `${potentialScore}/100`}
+    </p>
+  </div>
 
-              <p className="mt-2 text-lg font-black text-neutral-500">
-                à faire fructifier dès maintenant
-              </p>
-            </div>
+  <div className="flex flex-col items-end gap-2">
+    <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">
+      +{potentialGain ?? "—"} pts
+    </span>
 
-            <div className="mt-6 rounded-3xl bg-white/70 p-4">
-              <p className="text-sm font-bold text-neutral-500">
-                Récompense potentielle
-              </p>
-
-              <p className="mt-2 text-4xl font-black text-indigo-700">
-                  {potentialGain === null ? "—" : `+${potentialGain}`}
-                <span className="text-lg text-neutral-500"> pts</span>
-              </p>
-
-              <p className="mt-2 text-sm text-neutral-500">
-                  Score potentiel :{" "}
-                <span className="font-black text-neutral-950">
-                    {potentialScore === null ? "—" : potentialScore}/100
-                </span>
-              </p>
-            </div>
-
-              <p className="mt-5 text-sm leading-6 text-neutral-600">
-                Commence par une session courte. La récompense dépend de la part de ton espace disponible que tu transformes en temps investi.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setCurrentView("guard-one")}
-                className="mt-6 w-full rounded-2xl bg-neutral-950 px-5 py-4 text-sm font-black text-white transition hover:bg-neutral-800"
-              >
-                Investir du temps
-              </button>
-
-              <p className="mt-3 text-center text-xs font-medium text-neutral-500">
-                Récompense estimée si la zone est complétée.
-              </p>
-          </CardContent>
-        </Card>
+    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-neutral-950 text-lg font-black text-white transition group-hover:bg-indigo-700">
+      →
+    </span>
+  </div>
+</button>
 
         {/* JOURNÉE TYPE */}
         <Card className="border-indigo-500/20 bg-gradient-to-br from-neutral-950 via-indigo-950/90 to-violet-900/70 text-white shadow-2xl shadow-indigo-950/30 backdrop-blur">
@@ -1548,68 +1674,82 @@ return (
                   <h2 className="text-2xl font-bold">Comment tes 24h se répartissent ?</h2>
 
                     <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-400">
-                      Les fuites ne mangent pas toute ta journée. Elles attaquent surtout ton espace de manœuvre :
-                      le temps qu’il te reste une fois le sommeil et le travail posés.
+                    Cette répartition est calculée à partir de ton check-in du jour :
+                    sommeil déclaré, heures engagées, temps consommé, temps investi et capital
+                    restant à décider.
                     </p>
 
-                <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-neutral-950 p-2">
-                  <button
-                        onClick={() => setDayMode("standard")}
-                        className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-                          dayMode === "standard"
-                            ? "bg-white text-neutral-950"
-                            : "text-neutral-300 hover:bg-white/10 hover:text-white"
-                        }`}
-                      >
-                        Standard
-                  </button>
-                  <button
-                        onClick={() => setDayMode("custom")}
-                        className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-                          dayMode === "custom"
-                            ? "bg-white text-neutral-950"
-                            : "text-neutral-300 hover:bg-white/10 hover:text-white"
-                        }`}
-                      >
-                        Personnalisé
-                  </button>
-                </div>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+      Sommeil déclaré
+    </p>
+    <p className="mt-2 text-2xl font-black text-white">
+      {formatHours(sleepHours)}
+    </p>
+  </div>
 
-                  {dayMode === "custom" && (
-                    <div className="mt-4 grid gap-4 rounded-3xl border border-white/10 bg-neutral-950 p-4 sm:grid-cols-2">
-                      <div>
-                        <label htmlFor="sleep-hours" className="text-sm font-medium text-neutral-300">
-                            Sommeil par jour
-                        </label>
-                          <input
-                            id="sleep-hours"
-                            type="number"
-                            min="0"
-                            max="24"
-                            step="0.5"
-                            value={customSleepHours}
-                            onChange={(event) => setCustomSleepHours(event.target.value)}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
-                          />
-                      </div>
+  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+  <div className="flex items-start justify-between gap-3">
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+        Heures engagées
+      </p>
+      <p className="text-xs text-neutral-500">
+        Max : {24 - Number(dailySleepHours || 0)}h
+      </p>
 
-                      <div>
-                        <label htmlFor="work-hours" className="text-sm font-medium text-neutral-300">
-                            Travail / obligations
-                        </label>
-                          <input
-                            id="work-hours"
-                            type="number"
-                            min="0"
-                            max="24"
-                            step="0.5"
-                            value={customWorkHours}
-                            onChange={(event) => setCustomWorkHours(event.target.value)}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
-                          />
-                      </div>
-                    </div>
-                  )}
+      {!isEditingDailyWorkHours ? (
+        <p className="mt-2 text-2xl font-black text-white">
+          {formatHours(workHours)}
+        </p>
+      ) : (
+        <input
+          type="number"
+          min="0"
+          max="24"
+          step="0.5"
+          value={dailyWorkHours}
+          onChange={(event) => updateDailyWorkHours(event.target.value)}
+          className="mt-2 w-28 rounded-2xl border border-white/10 bg-neutral-950 px-4 py-3 text-xl font-black text-white outline-none focus:border-indigo-400/60"
+        />
+      )}
+    </div>
+
+    {!isEditingDailyWorkHours ? (
+      <button
+      type="button"
+      onClick={() => setIsEditingDailyWorkHours(true)}
+      className="mt-4 inline-flex items-center justify-center rounded-full border border-indigo-400/20 bg-indigo-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-indigo-200 transition hover:border-indigo-300/40 hover:bg-indigo-400/20 hover:text-white"
+    >
+      Modifier
+    </button>
+    ) : (
+      <button
+        type="button"
+        onClick={() => {
+          const updatedCheckin = {
+            ...dailyCheckin,
+            workHours: clampNumber(dailyWorkHours, 0, 24 - Number(dailySleepHours || 0)),
+            updatedAt: new Date().toISOString(),
+          };
+
+          localStorage.setItem(
+            getDailyCheckinStorageKey(),
+            JSON.stringify(updatedCheckin)
+          );
+
+          setDailyCheckin(updatedCheckin);
+          setIsEditingDailyWorkHours(false);
+        }}
+        className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-xs font-black uppercase tracking-[0.14em] text-neutral-950 transition hover:bg-neutral-200"
+      >
+        Valider
+      </button>
+    )}
+  </div>
+</div>
+</div>
 
                   {dayBreakdown.overflowHours > 0 && (
                     <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -1690,6 +1830,9 @@ return (
             </div>
           </CardContent>
         </Card>
+        </>
+        </>
+      )}
       </>
     )}
 
