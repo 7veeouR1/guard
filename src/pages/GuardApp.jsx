@@ -2251,7 +2251,7 @@ return (
             : "text-neutral-500 hover:bg-white/5 hover:text-white"
         }`}
       >
-        Aujourd’hui
+        DAILY
       </button>
 
       <button
