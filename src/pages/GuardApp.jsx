@@ -1836,90 +1836,109 @@ return (
       </>
     )}
 
-    {/* ONGLET AUJOURD’HUI */}
+    {/* ONGLET CONSOMMATION */}
     {activeTab === "leaks" && (
       <>
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           {/* AJOUTER HABITUDES */}
-              <Card className="border-white/10 bg-white/5 text-white backdrop-blur">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-bold">Ajoute tes habitudes</h2>
-                      <p className="mt-2 text-sm text-neutral-400">
-                        Commence avec un exemple ou crée ton propre “leak”.
-                      </p>
-                    </div>
+<Card className="border-rose-500/20 bg-gradient-to-br from-neutral-950 via-rose-950/25 to-violet-950/30 text-white shadow-2xl shadow-rose-950/20 backdrop-blur">
+  <CardContent className="p-6">
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-300">
+          Consommation
+        </p>
 
-                    <button
-                      onClick={clearHabits}
-                      className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-neutral-300 transition hover:bg-white/10 hover:text-white"
-                    >
-                      Reset
-                    </button>
-                  </div>
+        <h2 className="mt-3 text-2xl font-black tracking-tight text-white">
+          Ce qui consomme ton temps        
+        </h2>
 
-                  <div className="mt-5 grid gap-3">
-                    {PRESETS.map((preset) => (
-                      <button
-                      key={preset.name}
-                      onClick={() => addHabit(preset.name, preset.minutes)}
-                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-                        recentlyAddedPreset === preset.name
-                          ? "border-emerald-400 bg-emerald-400/15 text-emerald-100"
-                          : "border-white/10 bg-white/5 text-white hover:bg-white/10"
-                      }`}
-                      >
-                        <span className="font-medium">{preset.name}</span>
-                      
-                        <span className="flex items-center gap-2 text-sm">
-                          {recentlyAddedPreset === preset.name && (
-                            <span className="font-black text-emerald-300">✓ Ajouté</span>
-                          )}
-                      
-                          <span className={recentlyAddedPreset === preset.name ? "text-emerald-200" : "text-neutral-400"}>
-                            {preset.minutes} min/j
-                          </span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+        <p className="mt-2 text-sm leading-6 text-neutral-400">
+        Commence par voir où ton temps part.
+        </p>
+      </div>
 
-                  <div className="mt-6 rounded-3xl border border-white/10 bg-neutral-950 p-4">
-                    <label className="text-sm font-medium text-neutral-300" htmlFor="habit-name">
-                      Habitude personnalisée
-                    </label>
-                    <input
-                      id="habit-name"
-                      value={customName}
-                      onChange={(event) => setCustomName(event.target.value)}
-                      placeholder="Ex : regarder mon téléphone au lit"
-                      className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-neutral-500 focus:border-white/30"
-                    />
+      <button
+        onClick={clearHabits}
+        className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs font-black text-rose-200 transition hover:bg-rose-400/20 hover:text-white"
+      >
+        Reset
+      </button>
+    </div>
 
-                    <label className="mt-4 block text-sm font-medium text-neutral-300" htmlFor="habit-minutes">
-                      Minutes par jour
-                    </label>
-                    <input
-                      id="habit-minutes"
-                      type="number"
-                      min="1"
-                      value={customMinutes}
-                      onChange={(event) => setCustomMinutes(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-white/30"
-                    />
+    <div className="mt-5 grid gap-3">
+      {PRESETS.map((preset) => (
+        <button
+          key={preset.name}
+          onClick={() => addHabit(preset.name, preset.minutes)}
+          className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+            recentlyAddedPreset === preset.name
+              ? "border-emerald-400 bg-emerald-400/15 text-emerald-100 shadow-lg shadow-emerald-950/20"
+              : "border-rose-400/10 bg-white/5 text-white hover:border-rose-300/30 hover:bg-rose-400/10"
+          }`}
+        >
+          <span className="font-bold">{preset.name}</span>
 
-                    <Button
-                      onClick={() => addHabit(customName, customMinutes)}
-                      disabled={!canAddCustomHabit}
-                      className="mt-4 w-full rounded-2xl bg-white py-4 font-bold text-neutral-950 hover:bg-neutral-200"
-                    >
-                      <span className="mr-2 text-lg">+</span>
-                      Ajouter
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          <span className="flex items-center gap-2 text-sm">
+            {recentlyAddedPreset === preset.name && (
+              <span className="font-black text-emerald-300">✓ Ajouté</span>
+            )}
+
+            <span
+              className={
+                recentlyAddedPreset === preset.name
+                  ? "text-emerald-200"
+                  : "text-rose-200"
+              }
+            >
+              {preset.minutes} min/j
+            </span>
+          </span>
+        </button>
+      ))}
+    </div>
+
+    <div className="mt-6 rounded-3xl border border-violet-400/20 bg-neutral-950/70 p-4 shadow-inner shadow-black/30">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">
+        Ajouter une consommation
+      </p>
+
+      <label className="mt-4 block text-sm font-bold text-neutral-300" htmlFor="habit-name">
+        Habitude personnalisée
+      </label>
+
+      <input
+        id="habit-name"
+        value={customName}
+        onChange={(event) => setCustomName(event.target.value)}
+        placeholder="Ex : regarder mon téléphone au lit"
+        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-neutral-500 focus:border-violet-300/60"
+      />
+
+      <label className="mt-4 block text-sm font-bold text-neutral-300" htmlFor="habit-minutes">
+        Minutes par jour
+      </label>
+
+      <input
+        id="habit-minutes"
+        type="number"
+        min="1"
+        value={customMinutes}
+        onChange={(event) => setCustomMinutes(event.target.value)}
+        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-violet-300/60"
+      />
+
+      <Button
+        onClick={() => addHabit(customName, customMinutes)}
+        disabled={!canAddCustomHabit}
+        className="mt-4 w-full rounded-2xl bg-gradient-to-r from-rose-300 to-violet-300 py-4 font-black text-neutral-950 transition hover:opacity-90 disabled:opacity-40"
+      >
+        <span className="mr-2 text-lg">+</span>
+        Ajouter
+      </Button>
+    </div>
+  </CardContent>
+</Card>
 
 
               <div className="grid gap-6">
