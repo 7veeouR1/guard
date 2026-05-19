@@ -1581,6 +1581,10 @@ return (
                   >
                     Combien d’heures as-tu dormi cette nuit ?
                   </label>
+
+                  <p className="mt-2 text-xs leading-5 text-neutral-500">
+                    Un sommeil réparateur, c'est la clé.
+                  </p>
       
                   <div className="mt-4 flex items-center gap-3">
                     <button
